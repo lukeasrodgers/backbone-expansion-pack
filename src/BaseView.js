@@ -13,6 +13,7 @@ var BaseView = Backbone.View.extend({
     if (!this.template) {
       throw new Error('No template provided');
     }
+    this.assigned_views = [];
   },
   /**
    * @return {Backbone.View}
@@ -29,6 +30,19 @@ var BaseView = Backbone.View.extend({
    */
   assign: function(view, selector, options) {
     view.setElement(this.$(selector)).render(options);
+    if (!this.assigned_views) {
+      this.assigned_views = [];
+    }
+    this.assigned_views.push(view);
+    return this;
+  },
+  remove: function() {
+    this.dispose();
+    _(this.assigned_views).each(function(assigned_view) {
+      assigned_view.remove();
+    });
+    this.assigned_views = [];
+    this.$el.remove();
     return this;
   }
 });
