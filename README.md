@@ -59,7 +59,7 @@ var my_model_view = new MyModelView({model: new Backbone.Model()});
 my_model_view.render();
 ```
 
-### backbone mixin
+### Backbone Mixin
 
 Provides a way to mix functionality into Backbone components, either
 from other Backbone components (e.g. mix View B into View A), or plain
