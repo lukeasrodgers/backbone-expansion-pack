@@ -6,9 +6,58 @@ Most of this code either is or has been running in various production
 environments, but as presented here, it should be considered (mostly)
 untested, unless otherwise indicated.
 
+In its current incarnation, the code was developed for Backbone 0.9,
+0.9.2, etc. At some point I'll be rewriting some of the views
+(especially BaseView, ModelView) to take advantage of some of the newer
+API that has been introduced as Backbone approaches 1.0 (e.g.
+`listenTo`).
+
 ## Components
 
 Docs in progress.
+
+
+### BaseView
+
+Provides methods for assigning child views and tearing them down when
+you call `view.remove()`.
+
+Requires a template, which is a string referencing a template on a
+global JST object.
+
+
+```
+var ChildView = BaseView.extend({
+  template: 'child_tpl'
+});
+var ParentView = BaseView.extend({
+  template: 'parent_tpl',
+  initialize: function() {
+    this.child_view = new ChildView();
+    BaseView.prototype.initialize.call(this);
+  },
+  render: function() {
+    BaseView.prototype.render.call(this);
+    this.assign(this.child_view, '#child_view');
+    return this;
+  }
+});
+var parent_view = new ParentView();
+parent_view.render();
+```
+
+### ModelView
+
+Provides simple `render` method to pass the model's attributes to the
+template.
+
+```
+var MyModelView = ModelView.extend({
+  template: 'model_view_tpl'
+});
+var my_model_view = new MyModelView({model: new Backbone.Model()});
+my_model_view.render();
+```
 
 ### backbone mixin
 
