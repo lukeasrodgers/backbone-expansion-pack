@@ -14,6 +14,8 @@
  *   some_method: function() {}
  * };
  * MyModel.mixin(MyMixin);
+ * If mixing in a Backbone constructor:
+ * MyModel.mixin(OtherModel.prototype);
  * Now can call `some_method` on instantiated MyModels.
  */
 (function() {
