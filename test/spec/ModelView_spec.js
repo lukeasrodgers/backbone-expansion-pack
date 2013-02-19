@@ -3,12 +3,12 @@ describe('ModelView', function() {
     it('should throw an error if no template', function() {
       var constructor = ModelView.extend();
       spyOn(constructor.prototype, 'render');
-      expect(function() { new constructor({model: new Backbone.Model() }); }).toThrow();
+      expect(function() { new constructor({model: new Backbone.Model() }); }).toThrow('No template provided');
     });
-    it('should throw an error if no template', function() {
+    it('should throw an error if no model', function() {
       var constructor = ModelView.extend({template: 'some template' });
       spyOn(constructor.prototype, 'render');
-      expect(function() { new ModelView(); }).toThrow();
+      expect(function() { new constructor(); }).toThrow('No model provided');
     });
   });
   describe('render', function() {
