@@ -12,7 +12,7 @@ ModelView = BaseView.extend({
     this.assigned_views = [];
   },
   render: function() {
-    this.$el.html(JST[this.template](this.model.toJSON()));
+    this.$el.html(JST[this.template](_.clone(this.model.attributes)));
     return this;
   }
 });
