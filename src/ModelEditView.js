@@ -8,14 +8,6 @@ var ModelEditView = ModelView.extend({
   events: {
     'change .change-aware': 'model_change'
   },
-	initialize: function() {
-    if (!this.template) {
-        throw new Error('No template provided');
-    }
-    if (!this.model) {
-        throw new Error('No model provided');
-    }
-	},
   /**
    * @param {Event} e
    */
@@ -23,13 +15,58 @@ var ModelEditView = ModelView.extend({
 		var $el = $(e.target),
 			name = $el.attr('name'),
 			value = $el.val(),
-			is_silent_set = $el.attr('data-silent-set'),
+			isSilentSet = $el.attr('data-silent-set'),
+      isCurrency = $el.attr('data-is-currency'),
+			isNumber = $el.attr('data-is-number'),
+			setValue = $el.attr('data-set-value'),
+			shouldStripIdFromName = $el.attr('data-strip-id'),
 			options = {silent: true},
 			obj = {};
-		if (is_silent_set === 'false') { // do silent set by default
+
+		if (isSilentSet === 'false' || this.silent_set === false) { // do silent set by default
 			options.silent = false;
 		}
-		obj[name] = value;
+
+		if (shouldStripIdFromName === 'true') { // will also strip cid
+			name = name.replace(/_c?\d*/, '');
+    }
+
+    if (isCurrency === 'true') {
+      value = Number(value.replace(/[\$,]/g, ''));
+    }
+
+    if (isNumber === 'true') {
+      value = Number(value);
+    }
+
+    obj[name] = value;
+
+    if (setValue) {
+      if (setValue === 'boolean') {
+        if ($el.is('input[type="checkbox"]')) {
+					if ($el.get(0).checked) {
+						obj[name] = true;
+					}
+					else {
+						obj[name] = false;
+					}
+				}
+			}
+      else if (setValue === 'numerical_on_off') {
+				if ($el.is('input[type="checkbox"]')) {
+					if ($el.get(0).checked) {
+            obj[name] = 1;
+          }
+          else {
+            obj[name] = 0;
+          }
+        }
+      }
+			else {
+				obj.value = value;
+			}
+		}
+
 		this.model.set(obj, options);
 	}
 });

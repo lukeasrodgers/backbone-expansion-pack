@@ -41,8 +41,14 @@ var BaseView = Backbone.View.extend({
     _(this.assigned_views).each(function(assigned_view) {
       assigned_view.remove();
     });
-    this.assigned_views = [];
+    this.assigned_views.length = 0;
     this.$el.remove();
+    return this;
+  },
+  dispose: function() {
+    this.undelegateEvents();
+    if (this.model) this.model.off(null, null, this);
+    if (this.collection) this.collection.off(null, null, this);
     return this;
   }
 });

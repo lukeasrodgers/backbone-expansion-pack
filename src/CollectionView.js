@@ -1,81 +1,122 @@
-/**
- * Renders a collection, based on child_view_constructor property.
- * @constructor
- */
-var CollectionView = Backbone.View.extend({
-  initialize : function() {
+CollectionView = Backbone.View.extend({
+  initialize : function(options) {
+    _.bindAll(this, 'new_child_view', 'reset', 'add_child', 'append' ,'remove_child', 'render', 'reverse_render', 'addNew', 'find_view');
     if (!this.template) {
-      throw new Error('No template provided');
+      throw "no template provided";
     }
     if (!this.child_view_constructor) {
-      throw new Error('No child view constructor provided');
+      throw "no child view constructor provided: " + this.template;
     }
     if (!this.list_selector) {
-      throw new Error('No list selector provided');
+      throw "no list selector provided"; 
     }
-    this.views = [];
-    this.collection.bind('reset', this.reset, this);
-    this.collection.bind('add', this.add, this);
-    this.collection.bind('remove', this.remove, this);
+
+    this.initialize_child_views();
+    this.collection.bind('reset', this.reset);
+    this.collection.bind('add', this.add_child);
+    this.collection.bind('remove', this.remove_child);
   },
-  reset: function() {
-    _(this.views).each(function(view) {
-      view.remove();
+
+  initialize_child_views: function() {
+    this.child_views = this.collection.map(function(model) {
+      return this.new_child_view(model);
+    }, this);
+  },
+
+  new_child_view: function(model) {
+    var view = new this.child_view_constructor({
+      model: model,
+      parentView: this
     });
-    this.views = [];
+    var entry = { view: view, rendered: false };
+    return entry;
+  },
+
+  reset: function() {
+    _(this.child_views).each(function(child_view) {
+      child_view.view.remove();
+    });
+    this.child_views.length = 0;
+    this.initialize_child_views();
     this.render();
   },
-  /**
-   * @param {Backbone.View} view
-   * @return {Backbone.View}
-   */
+
   append: function(view) {
+    // not sure this call to delegateEvents is necessary
+    view.delegateEvents();
     this.$(this.list_selector).append(view.render().el);
-    return this;
   },
-  /**
-   * @param {Backbone.View} view
-   * @return {Backbone.View}
-   */
+
 	prepend: function(view) {
     this.$(this.list_selector).prepend(view.render().el);
-    return this;
-	},
+  },
+
+  find_view: function(model) {
+    return _.detect(this.child_views, function(child_view) { return child_view.view.model === model; });
+  },
+
   render: function() {
     $(this.el).html(JST[this.template](this.collection));
-    var view;
-    this.collection.each(function(model, i) {
-      view = new this.child_view_constructor({
-        model: model,
-        parent_view: this
-      });
-      this.views.push(view);
-      this.append(view);
+
+    _.each(this.child_views, function(child_view, index) {
+      this.append(child_view.view);
+    }, this);
+
+    this.rendered = true;
+    return this;
+  },
+
+  reverse_render: function(reverser) {
+    $(this.el).html(JST[this.template](this.collection));
+    _.each(this.child_views, function(child_view, index) {
+      this.prepend(child_view.view);
     }, this);
     this.rendered = true;
     return this;
   },
-  /**
-   * @param {Backbone.Model} model
-   */
-  add: function(model) {
-    var view = new this.child_view_constructor({
-      model: model,
-      parent_view: this
-    });
-    this.views.push(view);
+
+  add_child: function(model) {
+    var destroyed = model.get('_destroy');
+    if(destroyed) {
+      return;
+    }
+    var child_view = this.new_child_view(model);
+    this.child_views.push(child_view);
     if (this.rendered) {
-      this.append(view);
+      this.append(child_view.view);
     }
   },
-  /**
-   * @param {Backbone.Model} model
-   */
-  remove: function(model) {
-    var view_to_remove = _.detect(this.views, function(v) { return v.model === model; });
-    this.views = _.without(this.views, view_to_remove);
-    if (this.rendered && view_to_remove) {
-      view_to_remove.remove();
+
+  remove_child: function(model) {
+    var viewToRemove = this.find_view(model);
+    this.child_views = _.without(this.child_views, viewToRemove);
+    if (this.rendered && viewToRemove) {
+      viewToRemove.view.remove();
     }
+  },
+
+  addNew: function(e) {
+    if (e) {
+      e.preventDefault();
+    }
+    this.collection.add();
+  },
+
+  remove: function() {
+    this.dispose();
+    this.$el.remove();
+  },
+
+  dispose: function() {
+    _(this.child_views).each(function(child_view) {
+      child_view.view.remove();
+    });
+    this.child_views = [];
+    ModelView.prototype.dispose.call(this);
+  },
+
+  assign: function() {
+    BaseView.prototype.assign.apply(this, arguments);
   }
+
 });
