@@ -13,5 +13,6 @@ Tests using jasmine currently exist for:
 - ModelView
 - ModelEditView
 - CollectionView
+- backbone\_mixin
 
 You can run the tests by opening `test/SpecRunner.html`.

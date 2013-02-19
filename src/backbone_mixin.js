@@ -9,6 +9,7 @@
  * var MyModel = Backbone.Model.extend({
  *   ...
  * });
+ * MyMixin can be Backbone component or just plain JavaScript object.
  * var MyMixin = {
  *   some_method: function() {}
  * };
@@ -27,7 +28,7 @@
   };
 
   Utils.view_mixin = _.wrap(Utils.mixin, function(func, from) {
-    var to = func(from);
+    var to = func.call(this, from);
     _.defaults(to.events, from.events);
     Utils.extend_method(to, from, 'render');
     return to;
@@ -36,6 +37,11 @@
   // Helper method to extend an already existing method
   Utils.extend_method = function(to, from, method_name) {
     if (!_.isUndefined(from[method_name])) {
+      if (to[method_name] === from[method_name]) {
+        // do not attempt to wrap functions if they are the same, causes
+        // undesirable behaviour
+        return;
+      }
       var old = to[method_name];
       to[method_name] = _.wrap(old, function(func) {
         var args = slice.call(arguments, 1),
