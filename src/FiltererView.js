@@ -20,14 +20,14 @@ Filterer = BaseView.extend({
         return acc;
       }
     }, {});
-    attrs.clear_filter_active = (!this.any_filters_active()) ? 'active' : '';
+    attrs.all_filter_active = this.show_unfiltered_active() ? 'active' : '';
     this.$el.html(JST[this.template](attrs));
     return this;
   },
   toggle_filter: function(e) {
     e.preventDefault();
     var filter_name = $(e.target).data('filter');
-    if (filter_name === 'clear') {
+    if (filter_name === 'all') {
       this.clear_filters(filter_name);
       this.trigger('after_filter');
       return;
@@ -75,6 +75,9 @@ Filterer = BaseView.extend({
     return _(this.filtered_view.filters).any(function(filter) {
       return (_.isFunction(filter)) ? true : filter.active;
     });
+  },
+  show_unfiltered_active: function() {
+    return !this.any_filters_active();
   },
   /**
    * Override this method to get fancier filtering criteria.
