@@ -75,6 +75,30 @@ describe('CollectionView', function() {
       expect(remove_spy).toHaveBeenCalled();
     });
   });
+  describe('initialize_child_views', function() {
+    beforeEach(function() {
+      this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz'}, {id: 3, fiz: 'buzz'}]);
+      $('body').append('<div id="renderer" />');
+      window.JST.tpl = _.template('some tpl <ul id="list"></ul>');
+    });
+    afterEach(function() {
+      if (this.view) {
+        this.view.remove();
+      }
+      $('#renderer').remove();
+      delete window.JST.tpl;
+    });
+    it('should trigger `after_initialize_child_views` event when done', function() {
+      var constructor = CollectionView.extend({
+        template: 'tpl',
+        child_view_constructor: Backbone.View,
+        list_selector: '#list'
+      });
+      var trigger_spy = spyOn(constructor.prototype, 'trigger');
+      this.view = new constructor({collection: this.collection, el: '#renderer'});
+      expect(trigger_spy).toHaveBeenCalledWith('after_initialize_child_views');
+    });
+  });
   describe('new_child_view', function() {
     beforeEach(function() {
       this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz'}, {id: 3, fiz: 'buzz'}]);

@@ -21,6 +21,7 @@ CollectionView = Backbone.View.extend({
     this.child_views = this.collection.map(function(model) {
       return this.new_child_view(model);
     }, this);
+    this.trigger('after_initialize_child_views');
   },
 
   new_child_view: function(model) {
