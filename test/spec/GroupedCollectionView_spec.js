@@ -220,14 +220,14 @@ describe('GroupedCollectionView', function() {
         this.view.$('#list li:nth-of-type(2) .clicker').click();
         expect(clicker_spy).toHaveBeenCalled();
       });
-      describe('toggle_grouping', function() {
+      describe('toggle_group', function() {
         it('should toggle grouping', function() {
           this.view = new this.constructor({collection: this.collection, el: '#renderer'});
           this.view.render();
           expect(this.view.$('#list li').length).toBe(7);
-          this.view.toggle_grouping('some_group');
+          this.view.toggle_group('some_group');
           expect(this.view.$('#list li').length).toBe(5);
-          this.view.toggle_grouping('some_group');
+          this.view.toggle_group('some_group');
           expect(this.view.$('#list li').length).toBe(7);
         });
       });
