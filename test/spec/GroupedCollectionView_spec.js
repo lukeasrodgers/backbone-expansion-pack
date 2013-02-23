@@ -191,6 +191,33 @@ describe('GroupedCollectionView', function() {
       $('#renderer').remove();
       delete window.JST.tpl;
     });
+    describe('grouped rendering', function() {
+      beforeEach(function() {
+        this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz', other_id: 1}, {id: 3, fiz: 'buzz', other_id: 1}, {id: 4, fiz: 'buzz', other_id: 2}, {id: 5, fiz: 'buzz', other_id: 2}, {id: 6, fiz: 'buzz', other_id: 2}]);
+        this.constructor = GroupedCollectionView.extend({
+          template: 'tpl',
+          child_view_constructor: this.child_view_constructor,
+          list_selector: '#list',
+          group_fn: function(child_view) {
+            return child_view.view.model.get('other_id');
+          },
+          name_for_group: function(group) {
+            var model = _(group).first().view.model;
+            return "Other id: " + model.get('other_id');
+          }
+        });
+      });
+      it('should group childviews', function() {
+        var clicker_spy = spyOn(this.child_view_constructor.prototype, 'click');
+        this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+        this.view.render();
+        expect(this.view.$('#list li').length).toBe(7);
+        expect(this.view.$('#list li:first').html()).toContain('Other id: 1');
+        expect(this.view.$('#list li:nth-of-type(2)').html()).toContain('buzz');
+        this.view.$('#list li:nth-of-type(2) .clicker').click();
+        expect(clicker_spy).toHaveBeenCalled();
+      });
+    });
     describe('render', function() {
       it('should append child view elements to the node specified by list selector, with events bound', function() {
         var clicker_spy = spyOn(this.child_view_constructor.prototype, 'click');
