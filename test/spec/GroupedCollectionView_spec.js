@@ -202,7 +202,8 @@ describe('GroupedCollectionView', function() {
             name: 'some_group',
             fn: function(child_view) {
               return child_view.view.model.get('other_id');
-            }
+            },
+            active: true
           }],
           name_for_group: function(group) {
             var model = _(group).first().view.model;

@@ -10,7 +10,6 @@ GroupedCollectionView = CollectionView.extend({
    */
   group_child_views: function(group) {
     if (!group && !this.groups) {
-      this.grouped = false;
       return;
     }
     else {
@@ -21,25 +20,38 @@ GroupedCollectionView = CollectionView.extend({
         group = this.groups[0];
       }
     }
-    this.clear_grouping();
+    this.clear_grouping(group);
     this.grouped_child_views = _(this.child_views).groupBy(group.fn);
-    this.grouped = true;
-    this.active_group = group;
+    group.active = true;
+  },
+  is_grouped: function() {
+    if (!this.groups || !this.groups.length) {
+      return false;
+    }
+    else {
+      return _(this.groups).any(function(group) {
+        return group.active;
+      });
+    }
   },
   render: function() {
-    if (!this.grouped) {
+    if (!this.is_grouped()) {
       return CollectionView.prototype.render.apply(this, arguments);
     }
     else {
       return this.grouped_render();
     }
   },
+  active_group: function() {
+    return _(this.groups).detect(function(group) {
+      return group.active;
+    });
+  },
   toggle_group: function(group_name) {
     var group = this.find_group(group_name);
-    if (group === this.active_group) {
-      this.grouped = !this.grouped;
-      if (!this.grouped) {
-        this.clear_grouping();
+    if (group === this.active_group()) {
+      if (this.is_grouped()) {
+        this.clear_grouping(group);
       }
       else {
         this.group_child_views(group);
@@ -61,12 +73,15 @@ GroupedCollectionView = CollectionView.extend({
     this.rendered = true;
     return this;
   },
-  clear_grouping: function() {
-    this.active_group = null;
+  clear_grouping: function(group) {
     this.grouped_child_views.length = 0;
+    if (group) {
+      group.active = false;
+    }
   },
   reset: function() {
-    this.clear_grouping();
+    var active_group = this.active_group();
+    this.clear_grouping(active_group);
     CollectionView.prototype.reset.apply(this, arguments);
   },
   /**
