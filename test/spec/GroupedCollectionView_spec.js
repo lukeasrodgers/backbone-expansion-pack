@@ -198,9 +198,12 @@ describe('GroupedCollectionView', function() {
           template: 'tpl',
           child_view_constructor: this.child_view_constructor,
           list_selector: '#list',
-          group_fn: function(child_view) {
-            return child_view.view.model.get('other_id');
-          },
+          groups: [{
+            name: 'some_group',
+            fn: function(child_view) {
+              return child_view.view.model.get('other_id');
+            }
+          }],
           name_for_group: function(group) {
             var model = _(group).first().view.model;
             return "Other id: " + model.get('other_id');
@@ -216,6 +219,17 @@ describe('GroupedCollectionView', function() {
         expect(this.view.$('#list li:nth-of-type(2)').html()).toContain('buzz');
         this.view.$('#list li:nth-of-type(2) .clicker').click();
         expect(clicker_spy).toHaveBeenCalled();
+      });
+      describe('toggle_grouping', function() {
+        it('should toggle grouping', function() {
+          this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+          this.view.render();
+          expect(this.view.$('#list li').length).toBe(7);
+          this.view.toggle_grouping('some_group');
+          expect(this.view.$('#list li').length).toBe(5);
+          this.view.toggle_grouping('some_group');
+          expect(this.view.$('#list li').length).toBe(7);
+        });
       });
     });
     describe('render', function() {

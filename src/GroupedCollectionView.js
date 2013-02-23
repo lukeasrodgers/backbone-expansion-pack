@@ -4,14 +4,27 @@ GroupedCollectionView = CollectionView.extend({
     this.on('after_initialize_child_views', this.group_child_views);
     CollectionView.prototype.initialize.apply(this, arguments);
   },
-  group_child_views: function() {
-    if (!this.group_fn) {
+  /**
+   * @param {Object|string} group either a {name: string, fn: Function} object or
+   * a {string} name of the group
+   */
+  group_child_views: function(group) {
+    if (!group && !this.groups) {
       this.grouped = false;
       return;
     }
-    this.grouped_child_views.length = 0;
-    this.grouped_child_views = _(this.child_views).groupBy(this.group_fn);
+    else {
+      if (typeof group === 'string') {
+        group = this.find_group(group);
+      }
+      else {
+        group = this.groups[0];
+      }
+    }
+    this.clear_grouping();
+    this.grouped_child_views = _(this.child_views).groupBy(group.fn);
     this.grouped = true;
+    this.active_group = group;
   },
   render: function() {
     if (!this.grouped) {
@@ -20,6 +33,22 @@ GroupedCollectionView = CollectionView.extend({
     else {
       return this.grouped_render();
     }
+  },
+  toggle_grouping: function(group_name) {
+    var group = this.find_group(group_name);
+    if (group === this.active_group) {
+      this.grouped = !this.grouped;
+      if (!this.grouped) {
+        this.clear_grouping();
+      }
+      else {
+        this.group_child_views(group);
+      }
+    }
+    else {
+      this.group_child_views(group);
+    }
+    this.render();
   },
   grouped_render: function() {
     $(this.el).html(JST[this.template](this.collection));
@@ -32,8 +61,12 @@ GroupedCollectionView = CollectionView.extend({
     this.rendered = true;
     return this;
   },
-  reset: function() {
+  clear_grouping: function() {
+    this.active_group = null;
     this.grouped_child_views.length = 0;
+  },
+  reset: function() {
+    this.clear_grouping();
     CollectionView.prototype.reset.apply(this, arguments);
   },
   /**
@@ -61,9 +94,17 @@ GroupedCollectionView = CollectionView.extend({
    * some simple transformations:
    * switch whitespace to hyphen, remove some punctuation, toLowerCase()
    * e.g 'namE for group: id' => 'name-for-group-1'
+   * override at will, just make sure it returns a string of form '#...'
    * @param {Array.<Object>}
+   * @return {string}
    */
   css_id_selector_for_group: function(group) {
     return '#' + this.name_for_group(group).replace(/\s/g, '-').toLowerCase().replace(/[:\+\.]/g,'');
+  },
+  /**
+   * @param {string} group_name
+   */
+  find_group: function(group_name) {
+    return _(this.groups).detect(function(g) { return g.name === group_name; });
   }
 });
