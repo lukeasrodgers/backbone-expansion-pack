@@ -86,9 +86,15 @@ GroupedCollectionView = CollectionView.extend({
     this.$(group_css_id_selector).append(view.render().el);
   },
   /**
-   * @interface
+   * Provides a sane default, but you will probably want to override
+   * this method.
+   * @param {Object} group
+   * @return {string}
    */
-  name_for_group: function(group) {},
+  name_for_group: function(group) {
+    var model = _(group).first().view.model;
+    return group.name + ': ' + model.get('other_id');
+  },
   /**
    * css id selector to target a group
    * some simple transformations:
