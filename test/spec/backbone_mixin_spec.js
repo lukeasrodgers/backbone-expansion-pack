@@ -107,7 +107,7 @@ describe('backbone_mixin', function() {
       expect(call1).toEqual(1);
       expect(call2).toEqual(1);
     });
-    it('should non-destructively overwrite the mixed-in view\'s `events` with those of the mixing-in view', function() {
+    it('should non-destructively extend the mixed-in view\'s `events` with those of the mixing-in view', function() {
       var that = this;
       var ViewConstructor = Backbone.View.extend({
         template: _.template('<a id="some_el">some el</a>'),
