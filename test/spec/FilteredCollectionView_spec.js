@@ -40,7 +40,7 @@ describe('FilteredCollectionView', function() {
         list_selector: '#list',
         filters: [
           function(model) { return model.get('id') !== 2; },
-          function(model) { return model.get('fiz') === 'buzz'}
+          function(model) { return model.get('fiz') === 'buzz';}
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
@@ -70,7 +70,7 @@ describe('FilteredCollectionView', function() {
         child_view_constructor: Backbone.View,
         list_selector: '#list',
         filters: [
-          function(model) {return false},
+          function(model) {return false;},
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
@@ -86,7 +86,7 @@ describe('FilteredCollectionView', function() {
         filters: [
           {
             name: 'foo',
-            fn: function(model) {return false},
+            fn: function(model) {return false;},
             active: true
           }
         ]
@@ -103,7 +103,7 @@ describe('FilteredCollectionView', function() {
         child_view_constructor: Backbone.View,
         list_selector: '#list',
         filters: [
-          function(model) {return false}
+          function(model) {return false;}
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
