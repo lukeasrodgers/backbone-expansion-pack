@@ -1,8 +1,6 @@
 CollectionView = BaseView.extend({
   initialize : function(options) {
-    if (!this.template) {
-      throw "no template provided";
-    }
+    BaseView.prototype.initialize.apply(this, arguments);
     if (!this.child_view_constructor) {
       throw "no child view constructor provided: " + this.template;
     }
@@ -100,11 +98,6 @@ CollectionView = BaseView.extend({
       e.preventDefault();
     }
     this.collection.add();
-  },
-
-  remove: function() {
-    this.dispose();
-    this.$el.remove();
   },
 
   dispose: function() {

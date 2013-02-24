@@ -16,7 +16,7 @@ describe('GroupedCollectionView', function() {
       var constructor = GroupedCollectionView.extend({
         child_view_constructor: Backbone.View
       });
-      expect(function() { new constructor({collection: this.collection}); }).toThrow('no template provided');
+      expect(function() { new constructor({collection: this.collection}); }).toThrow('No template provided');
     });
     it('should throw an error if no child view constructor', function() {
       var constructor = GroupedCollectionView.extend({
