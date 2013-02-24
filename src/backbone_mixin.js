@@ -31,7 +31,9 @@
 
   Utils.view_mixin = _.wrap(Utils.mixin, function(func, from) {
     var to = func.call(this, from);
-    _.defaults(to.events, from.events);
+    var events = _.clone(to.events);
+    _.defaults(events, from.events);
+    to.events = events;
     Utils.extend_method(to, from, 'render');
     return to;
   });
