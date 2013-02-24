@@ -1,8 +1,14 @@
 GroupedCollectionView = CollectionView.extend({
+  group_header_template: '<li class="grouped-collectionview-header"><%= name %><ul id="<%= id %>"></ul></li>',
   initialize: function(options) {
     this.grouped_child_views = [];
-    this.on('after_initialize_child_views', this.group_child_views);
+    this.on('after_initialize_child_views', this.group_if_active, this);
     CollectionView.prototype.initialize.apply(this, arguments);
+  },
+  group_if_active: function() {
+    if (this.grouping_active()) {
+      this.group_child_views();
+    }
   },
   /**
    * @param {Object|string} group either a {name: string, fn: Function} object or
@@ -24,7 +30,7 @@ GroupedCollectionView = CollectionView.extend({
     this.grouped_child_views = _(this.child_views).groupBy(group.fn);
     group.active = true;
   },
-  is_grouped: function() {
+  grouping_active: function() {
     if (!this.groups || !this.groups.length) {
       return false;
     }
@@ -35,7 +41,7 @@ GroupedCollectionView = CollectionView.extend({
     }
   },
   render: function() {
-    if (!this.is_grouped()) {
+    if (!this.grouping_active()) {
       return CollectionView.prototype.render.apply(this, arguments);
     }
     else {
@@ -50,7 +56,7 @@ GroupedCollectionView = CollectionView.extend({
   toggle_group: function(group_name) {
     var group = this.find_group(group_name);
     if (group === this.active_group()) {
-      if (this.is_grouped()) {
+      if (this.grouping_active()) {
         this.clear_grouping(group);
       }
       else {
@@ -89,7 +95,7 @@ GroupedCollectionView = CollectionView.extend({
    * @return {string} group id css selector
    */
   append_group_header: function(group) {
-    var tpl = _.template('<li class="grouped-collectionview-header"><%= name %><ul id="<%= id %>"></ul></li>');
+    var tpl = _.template(this.group_header_template);
     var group_css_id_selector = this.css_id_selector_for_group(group);
     this.$(this.list_selector).append(tpl({
       name: this.name_for_group(group),
@@ -107,8 +113,9 @@ GroupedCollectionView = CollectionView.extend({
    * @return {string}
    */
   name_for_group: function(group) {
+    var active_group = this.active_group();
     var model = _(group).first().view.model;
-    return group.name + ': ' + model.get('other_id');
+    return active_group.name + '('+ group.length +')';
   },
   /**
    * css id selector to target a group
@@ -120,7 +127,7 @@ GroupedCollectionView = CollectionView.extend({
    * @return {string}
    */
   css_id_selector_for_group: function(group) {
-    return '#' + this.name_for_group(group).replace(/\s/g, '-').toLowerCase().replace(/[:\+\.]/g,'');
+    return '#' + _.uniqueId(this.name_for_group(group).replace(/\s/g, '-').toLowerCase().replace(/[():\+\.]/g,'') + '-');
   },
   /**
    * @param {string} group_name
