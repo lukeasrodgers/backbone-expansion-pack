@@ -88,7 +88,7 @@ describe('GroupedCollectionView', function() {
       $('#renderer').remove();
       delete window.JST.tpl;
     });
-    it('should trigger `after_initialize_child_views` event when done', function() {
+    it('should trigger `after:initialize_child_views` event when done', function() {
       var constructor = GroupedCollectionView.extend({
         template: 'tpl',
         child_view_constructor: Backbone.View,
@@ -96,7 +96,7 @@ describe('GroupedCollectionView', function() {
       });
       var trigger_spy = spyOn(constructor.prototype, 'trigger');
       this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(trigger_spy).toHaveBeenCalledWith('after_initialize_child_views');
+      expect(trigger_spy).toHaveBeenCalledWith('after:initialize_child_views');
     });
   });
   describe('new_child_view', function() {

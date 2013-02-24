@@ -4,6 +4,7 @@ FilteredCollectionView = CollectionView.extend({
     this.child_views = this.collection.select(function(model) { return that.filter(model); }).map(function(model) {
       return this.new_child_view(model);
     }, this);
+    this.trigger('after:initialize_child_views');
   },
   /**
    * @parm {Backbone.Model}

@@ -2,7 +2,7 @@ GroupedCollectionView = CollectionView.extend({
   group_header_template: '<li class="grouped-collectionview-header"><%= name %><ul id="<%= id %>"></ul></li>',
   initialize: function(options) {
     this.grouped_child_views = [];
-    this.on('after_initialize_child_views', this.group_if_active, this);
+    this.on('after:initialize_child_views', this.group_if_active, this);
     CollectionView.prototype.initialize.apply(this, arguments);
   },
   group_if_active: function() {

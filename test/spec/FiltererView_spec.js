@@ -75,7 +75,7 @@ describe('Filterer', function() {
       $('#renderer').remove();
       delete window.JST.tpl;
     });
-    it('should trigger `after_initialize_child_views` event when done', function() {
+    it('should trigger `after:initialize_child_views` event when done', function() {
       var constructor = CollectionView.extend({
         template: 'tpl',
         child_view_constructor: Backbone.View,
@@ -83,7 +83,7 @@ describe('Filterer', function() {
       });
       var trigger_spy = spyOn(constructor.prototype, 'trigger');
       this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(trigger_spy).toHaveBeenCalledWith('after_initialize_child_views');
+      expect(trigger_spy).toHaveBeenCalledWith('after:initialize_child_views');
     });
   });
   describe('filter_active', function() {
