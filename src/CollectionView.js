@@ -1,6 +1,5 @@
-CollectionView = Backbone.View.extend({
+CollectionView = BaseView.extend({
   initialize : function(options) {
-    _.bindAll(this, 'new_child_view', 'reset', 'add_child', 'append' ,'remove_child', 'render', 'reverse_render', 'addNew', 'find_view');
     if (!this.template) {
       throw "no template provided";
     }
@@ -13,8 +12,8 @@ CollectionView = Backbone.View.extend({
 
     this.initialize_child_views();
     this.collection.bind('reset', this.reset);
-    this.collection.bind('add', this.add_child);
-    this.collection.bind('remove', this.remove_child);
+    this.collection.bind('add', this.add_child, this);
+    this.collection.bind('remove', this.remove_child, this);
   },
 
   initialize_child_views: function() {
