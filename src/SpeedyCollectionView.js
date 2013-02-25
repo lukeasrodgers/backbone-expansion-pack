@@ -1,43 +1,35 @@
 SpeedyCollectionView = CollectionView.extend({
 
   reset: function() {
-    _(this.child_views).each(function(child_view) {
-      child_view.view.remove();
-    });
     this.child_views.length = 0;
     this.initialize_child_views();
     this.render();
   },
 
   append: function(view) {
-    // not sure this call to delegateEvents is necessary
-    view.delegateEvents();
-    this.$(this.list_selector).append(view.render().el);
+    this.$(this.list_selector).append(view.template_html());
   },
 
 	prepend: function(view) {
-    this.$(this.list_selector).prepend(view.render().el);
+    this.$(this.list_selector).prepend(view.template_html());
   },
 
   render: function() {
     $(this.el).html(JST[this.template](this.collection));
-    var html = _.reduce(this.child_views, function(child_view, index) {
-      
-    });
-    var html = '';
-    _.each(this.child_views, function(child_view, index) {
-      this.append(child_view.view);
-    }, this);
-
+    var html = _.reduce(this.child_views, function(acc, child_view) {
+      return acc + child_view.view.template_html();
+    }, '', this);
+    this.$(this.list_selector).html(html);
     this.rendered = true;
     return this;
   },
 
   reverse_render: function(reverser) {
     $(this.el).html(JST[this.template](this.collection));
-    _.each(this.child_views, function(child_view, index) {
-      this.prepend(child_view.view);
-    }, this);
+    var html = _.reduceRight(this.child_views, function(child_view, index) {
+      return child_view.view.template_html();
+    });
+    this.$(this.list_selector).html(html);
     this.rendered = true;
     return this;
   },
@@ -60,6 +52,18 @@ SpeedyCollectionView = CollectionView.extend({
     if (this.rendered && viewToRemove) {
       viewToRemove.view.remove();
     }
+  },
+
+  view_by_id: function(id) {
+    return _(this.child_views).detect(function(child_view) {
+      return child_view.view.id === id;
+    });
+  },
+
+  view_for_event: function(e) {
+    var id = $(e.currentTarget).closest('.speedy-model-view').get(0).id;
+    var child_view = this.view_by_id(id);
+    return child_view.view;
   }
 
 });
