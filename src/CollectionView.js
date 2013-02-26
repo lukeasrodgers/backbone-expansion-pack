@@ -40,7 +40,6 @@ CollectionView = BaseView.extend({
   },
 
   append: function(view) {
-    // not sure this call to delegateEvents is necessary
     view.delegateEvents();
     this.$(this.list_selector).append(view.render().el);
   },

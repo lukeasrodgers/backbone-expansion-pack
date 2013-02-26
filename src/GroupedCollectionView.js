@@ -104,6 +104,7 @@ GroupedCollectionView = CollectionView.extend({
     return group_css_id_selector;
   },
   append_to_group: function(group_css_id_selector, view) {
+    view.delegateEvents();
     this.$(group_css_id_selector).append(view.render().el);
   },
   /**
