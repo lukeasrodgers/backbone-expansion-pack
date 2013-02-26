@@ -14,18 +14,21 @@ describe('GroupedCollectionView', function() {
     });
     it('should throw an error if no template', function() {
       var constructor = GroupedCollectionView.extend({
+        collection: this.collection,
         child_view_constructor: Backbone.View
       });
       expect(function() { new constructor({collection: this.collection}); }).toThrow('No template provided');
     });
     it('should throw an error if no child view constructor', function() {
       var constructor = GroupedCollectionView.extend({
+        collection: this.collection,
         template: 'tpl'
       });
       expect(function() { new constructor({collection: this.collection}); }).toThrow('no child view constructor provided: tpl');
     });
     it('should throw an error if no list selector', function() {
       var constructor = GroupedCollectionView.extend({
+        collection: this.collection,
         template: 'tpl',
         child_view_constructor: Backbone.View
       });
@@ -230,6 +233,42 @@ describe('GroupedCollectionView', function() {
           expect(this.view.$('#list li').length).toBe(5);
           this.view.toggle_group('some_group');
           expect(this.view.$('#list li').length).toBe(7);
+        });
+      });
+      describe('add_child', function() {
+        it('should append the new view under the right group if grouping is active', function() {
+          this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+          this.view.render();
+          this.view.collection.add({id: 7, fiz: 'bozz', other_id: 1});
+          expect(this.view.$('.grouped-collectionview-header:first').html()).toContain('bozz');
+        });
+      });
+      describe('find_grouping_for', function() {
+        it('should find the right group given a model', function() {
+          this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+          expect(this.view.find_grouping_for(this.collection.at(0)).group_key).toBe(1);
+          expect(this.view.find_grouping_for(this.collection.get(4)).group_key).toBe(2);
+        });
+      });
+      describe('updating group for a give', function() {
+        it('should NOT move a view to the correct new group if a tracked attribute changes on the model, but no update_grouping function', function() {
+          this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+          this.view.render();
+          expect(this.view.$('.grouped-collectionview-header:first li').length).toBe(2);
+          expect(this.view.$('.grouped-collectionview-header:last li').length).toBe(3);
+          this.view.collection.at(0).set('other_id', 2);
+          expect(this.view.$('.grouped-collectionview-header:first li').length).toBe(2);
+          expect(this.view.$('.grouped-collectionview-header:last li').length).toBe(3);
+        });
+        it('should move a view to the correct new group if a tracked attribute changes on the model, and there is an update_grouping function', function() {
+          this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+          this.view.groups[0].update_grouping = function(changes) { return changes.other_id; };
+          this.view.render();
+          expect(this.view.$('.grouped-collectionview-header:first li').length).toBe(2);
+          expect(this.view.$('.grouped-collectionview-header:last li').length).toBe(3);
+          this.view.collection.at(0).set('other_id', 2);
+          expect(this.view.$('.grouped-collectionview-header:first li').length).toBe(1);
+          expect(this.view.$('.grouped-collectionview-header:last li').length).toBe(4);
         });
       });
     });
