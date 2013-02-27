@@ -1,6 +1,6 @@
 describe('FilteredCollectionView', function() {
   beforeEach(function() {
-    this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz'}, {id: 3, fiz: 'buzz'}]);
+    this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz'}, {id: 3, fiz: 'buzz'}, {id: 4, fiz: 'bozz'}]);
     $('body').append('<div id="renderer" />');
     window.JST.tpl = _.template('some tpl <ul id="list"></ul>');
   });
@@ -19,7 +19,7 @@ describe('FilteredCollectionView', function() {
         list_selector: '#list'
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(this.view.child_views.length).toBe(2);
+      expect(this.view.child_views.length).toBe(3);
     });
     it('should filter out views that do not match a single filter', function() {
       var constructor = FilteredCollectionView.extend({
@@ -60,6 +60,87 @@ describe('FilteredCollectionView', function() {
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
+      expect(this.view.child_views.length).toBe(2);
+    });
+    it('should apply union relation to filters in the same group', function() {
+      var constructor = FilteredCollectionView.extend({
+        template: 'tpl',
+        child_view_constructor: Backbone.View,
+        list_selector: '#list',
+        filters: [
+          {
+            name: 'id',
+            group_name: 'id',
+            fn: function(model) { return model.get('id') === 2; },
+            active: true
+          },
+          {
+            name: 'id3',
+            group_name: 'id',
+            fn: function(model) { return model.get('id') === 3; },
+            active: true
+          }
+        ]
+      });
+      this.view = new constructor({collection: this.collection, el: '#renderer'});
+      expect(this.view.child_views.length).toBe(2);
+    });
+    it('should apply intersection relation to filters in different groups', function() {
+      var constructor = FilteredCollectionView.extend({
+        template: 'tpl',
+        child_view_constructor: Backbone.View,
+        list_selector: '#list',
+        filters: [
+          {
+            name: 'id',
+            group_name: 'id',
+            fn: function(model) { return model.get('id') === 2; },
+            active: true
+          },
+          {
+            name: 'id2',
+            group_name: 'id',
+            fn: function(model) { return model.get('id') === 1; },
+            active: true
+          },
+          {
+            name: 'bozz',
+            group_name: 'bozzy',
+            fn: function(model) { return model.get('fiz') === 'bozz'; },
+            active: true
+          }
+        ]
+      });
+      this.view = new constructor({collection: this.collection, el: '#renderer'});
+      expect(this.view.child_views.length).toBe(0);
+    });
+    it('should ignore inactive filters', function() {
+      var constructor = FilteredCollectionView.extend({
+        template: 'tpl',
+        child_view_constructor: Backbone.View,
+        list_selector: '#list',
+        filters: [
+          {
+            name: 'id',
+            group_name: 'id',
+            fn: function(model) { return model.get('id') === 2; },
+            active: true
+          },
+          {
+            name: 'id2',
+            group_name: 'id',
+            fn: function(model) { return model.get('id') === 1; },
+            active: false
+          },
+          {
+            name: 'bozz',
+            group_name: 'bozzy',
+            fn: function(model) { return model.get('fiz') === 'bozz'; },
+            active: false
+          }
+        ]
+      });
+      this.view = new constructor({collection: this.collection, el: '#renderer'});
       expect(this.view.child_views.length).toBe(1);
     });
   });
@@ -70,13 +151,13 @@ describe('FilteredCollectionView', function() {
         child_view_constructor: Backbone.View,
         list_selector: '#list',
         filters: [
-          function(model) {return false;},
+          function(model) {return false;}
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
       expect(this.view.child_views.length).toBe(0);
       this.view.clear_filters();
-      expect(this.view.child_views.length).toBe(2);
+      expect(this.view.child_views.length).toBe(3);
     });
     it('should leave filters intact, but disable them if possible', function() {
       var constructor = FilteredCollectionView.extend({
@@ -94,7 +175,7 @@ describe('FilteredCollectionView', function() {
       this.view = new constructor({collection: this.collection, el: '#renderer'});
       expect(this.view.child_views.length).toBe(0);
       this.view.clear_filters();
-      expect(this.view.child_views.length).toBe(2);
+      expect(this.view.child_views.length).toBe(3);
       expect(this.view.filters.length).toBe(1);
     });
     it('should entirely destroy filters if they cannot be disabled, i.e. if they are just functions', function() {
@@ -109,7 +190,7 @@ describe('FilteredCollectionView', function() {
       this.view = new constructor({collection: this.collection, el: '#renderer'});
       expect(this.view.child_views.length).toBe(0);
       this.view.clear_filters();
-      expect(this.view.child_views.length).toBe(2);
+      expect(this.view.child_views.length).toBe(3);
       expect(this.view.filters.length).toBe(0);
     });
     it('should should leave a filter active if it is passed the right args', function() {
@@ -141,9 +222,9 @@ describe('FilteredCollectionView', function() {
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(this.view.child_views.length).toBe(2);
+      expect(this.view.child_views.length).toBe(3);
       this.view.add_filter(function(model) { return model.get('fiz') !== 'buzz';});
-      expect(this.view.child_views.length).toBe(0);
+      expect(this.view.child_views.length).toBe(1);
     });
   });
   describe('remove_filter', function() {
@@ -162,9 +243,9 @@ describe('FilteredCollectionView', function() {
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(this.view.child_views.length).toBe(1);
-      this.view.remove_filter('id');
       expect(this.view.child_views.length).toBe(2);
+      this.view.remove_filter('id');
+      expect(this.view.child_views.length).toBe(3);
     });
     it('should be able to remove a filter by name', function() {
       var filter = function(model) { return model.get('id') !== 2; };
@@ -177,9 +258,9 @@ describe('FilteredCollectionView', function() {
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(this.view.child_views.length).toBe(1);
-      this.view.remove_filter(filter);
       expect(this.view.child_views.length).toBe(2);
+      this.view.remove_filter(filter);
+      expect(this.view.child_views.length).toBe(3);
     });
   });
   describe('find_filter', function() {
@@ -230,9 +311,9 @@ describe('FilteredCollectionView', function() {
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(this.view.child_views.length).toBe(2);
+      expect(this.view.child_views.length).toBe(3);
       this.view.activate_filter('id');
-      expect(this.view.child_views.length).toBe(1);
+      expect(this.view.child_views.length).toBe(2);
     });
   });
   describe('deactivate_filter', function() {
@@ -251,9 +332,9 @@ describe('FilteredCollectionView', function() {
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(this.view.child_views.length).toBe(1);
-      this.view.deactivate_filter('id');
       expect(this.view.child_views.length).toBe(2);
+      this.view.deactivate_filter('id');
+      expect(this.view.child_views.length).toBe(3);
       expect(this.view.filters.length).toBe(1);
     });
   });

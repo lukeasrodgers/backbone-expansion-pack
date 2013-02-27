@@ -15,11 +15,29 @@ FilteredCollectionView = CollectionView.extend({
       return true;
     }
     else {
-      return _.reduce(this.filters, function(acc, filter) {
-        fn = _.isFunction(filter) ? filter : (filter.active) ? filter.fn : function() { return true; };
-        return acc && fn(model);
+      var grouped_active_filters = this.grouped_active_filters();
+      var any_groups = _.keys(grouped_active_filters).length > 1 || !grouped_active_filters['undefined'];
+      var logical_filter_relation;
+      if (any_groups) {
+        logical_filter_relation = _.any;
+      }
+      else {
+        logical_filter_relation = _.all;
+      }
+      return _.reduce(grouped_active_filters, function(acc, filter_group) {
+        return acc && logical_filter_relation(filter_group, function(filter) {
+          fn = _.isFunction(filter) ? filter : filter.fn;
+          return fn(model);
+        });
       }, true);
     }
+  },
+  grouped_active_filters: function() {
+    return _.chain(this.filters).
+      select(function(filter) {
+        return (_.isFunction(filter)) ? filter : filter.active;
+      }).
+      groupBy('group_name').value();
   },
   /**
    * @param {Object=} opts
