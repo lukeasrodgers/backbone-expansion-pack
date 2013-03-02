@@ -5,6 +5,7 @@ GroupedCollectionView = CollectionView.extend({
     this.on('after:initialize_child_views', this.group_if_active, this);
     this.collection.on('change', this.maybe_adjust_grouping, this);
     this.grouped_view_map = {};
+    this.multi_grouping = options.multi_grouping || this.multi_grouping || true;
     CollectionView.prototype.initialize.apply(this, arguments);
   },
   group_if_active: function() {
@@ -14,9 +15,10 @@ GroupedCollectionView = CollectionView.extend({
   },
   /**
    * @param {Object|string} group either a {name: string, fn: Function} object or
+   * @param {Array=} child_views optional set of child views for subgrouping
    * a {string} name of the group
    */
-  group_child_views: function(group) {
+  group_child_views: function(group, child_views) {
     if (!group && !this.groups) {
       return;
     }
@@ -28,9 +30,28 @@ GroupedCollectionView = CollectionView.extend({
         group = this.groups[0];
       }
     }
-    this.clear_grouping(group);
-    this.grouped_child_views = _(this.child_views).groupBy(group.fn);
+    if (!this.multi_grouping) {
+      this.clear_grouping(group);
+    }
+    child_views = child_views || this.child_views;
+    console.log(this.child_views);
+
+    this.grouped_child_views = this.group_em(group, child_views);
+
     group.active = true;
+  },
+  group_em: function(group, child_views) {
+    if (this.child_views_already_grouped(child_views)) {
+      return _.map(child_views, function(sub_child) {
+        return this.group_em(group, sub_child);
+      }, this);
+    }
+    else {
+      return _(child_views).groupBy(group.fn);
+    }
+  },
+  child_views_already_grouped: function(child_views) {
+    return _.isArray(child_views[0]);
   },
   grouping_active: function() {
     if (!this.groups || !this.groups.length) {
