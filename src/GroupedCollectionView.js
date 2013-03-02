@@ -57,7 +57,7 @@ GroupedCollectionView = CollectionView.extend({
   },
   toggle_group: function(group_name) {
     var group = this.find_group(group_name);
-    if (group === this.active_group()) {
+    if (group.active) {
       this.clear_grouping(group);
     }
     else {
