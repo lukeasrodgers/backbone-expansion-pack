@@ -1,4 +1,43 @@
 describe('GroupedCollectionView', function() {
+  describe('group_child_views', function() {
+    beforeEach(function() {
+      window.JST.tpl = _.template('some tpl <ul id="list"></ul>');
+      this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz', other_id: 1}, {id: 3, fiz: 'bazz', other_id: 1}, {id: 4, fiz: 'buzz', other_id: 2}, {id: 5, fiz: 'bazz', other_id: 2}, {id: 6, fiz: 'bazz', other_id: 2}]);
+    });
+    afterEach(function() {
+      delete window.JST.tpl;
+    });
+    it('should handle multiple groups', function() {
+      var constructor = GroupedCollectionView.extend({
+        child_view_constructor: Backbone.View,
+        template: 'tpl',
+        list_selector: '#list',
+        groups: [
+          {
+            name: 'other_id',
+            fn: function(child_view) {
+              return child_view.view.model.get('other_id');
+            },
+            active: true
+          },
+          {
+            name: 'fiz',
+            fn: function(child_view) {
+              return child_view.view.model.get('fiz');
+            },
+            active: false
+          }
+        ]
+      });
+      var view = new constructor({
+        collection: this.collection
+      });
+      view.render();
+      view.toggle_group('fiz');
+      expect(view.grouped_child_views[1].buzz.length).toBe(1);
+      expect(view.grouped_child_views[2].bazz.length).toBe(2);
+    });
+  });
   describe('initialize', function() {
     beforeEach(function() {
       this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz'}, {id: 3, fiz: 'buzz'}]);

@@ -1,7 +1,7 @@
 GroupedCollectionView = CollectionView.extend({
   group_header_template: '<li class="grouped-collectionview-header"><%= name %><ul id="<%= id %>"></ul></li>',
   initialize: function(options) {
-    this.grouped_child_views = [];
+    this.grouped_child_views = {};
     this.on('after:initialize_child_views', this.group_if_active, this);
     this.collection.on('change', this.maybe_adjust_grouping, this);
     this.grouped_view_map = {};
@@ -15,10 +15,9 @@ GroupedCollectionView = CollectionView.extend({
   },
   /**
    * @param {Object|string} group either a {name: string, fn: Function} object or
-   * @param {Array=} child_views optional set of child views for subgrouping
    * a {string} name of the group
    */
-  group_child_views: function(group, child_views) {
+  group_child_views: function(group) {
     if (!group && !this.groups) {
       return;
     }
@@ -33,25 +32,28 @@ GroupedCollectionView = CollectionView.extend({
     if (!this.multi_grouping) {
       this.clear_grouping(group);
     }
-    child_views = child_views || this.child_views;
-    console.log(this.child_views);
 
-    this.grouped_child_views = this.group_em(group, child_views);
-
+    if (_.keys(this.grouped_child_views).length) {
+      this.grouped_child_views = this.apply_grouping(group, this.grouped_child_views);
+    }
+    else {
+      this.grouped_child_views = this.apply_grouping(group, this.child_views);
+    }
     group.active = true;
   },
-  group_em: function(group, child_views) {
-    if (this.child_views_already_grouped(child_views)) {
-      return _.map(child_views, function(sub_child) {
-        return this.group_em(group, sub_child);
-      }, this);
+  apply_grouping: function(group, child_views) {
+    if (this.already_grouped(child_views)) {
+      return _.reduce(child_views, function(acc, sub_child, key) {
+        acc[key] = this.apply_grouping(group, sub_child);
+        return acc;
+      }, {}, this);
     }
     else {
       return _(child_views).groupBy(group.fn);
     }
   },
-  child_views_already_grouped: function(child_views) {
-    return _.isArray(child_views[0]);
+  already_grouped: function(x) {
+    return _.isArray(_(x).values()[0]);
   },
   grouping_active: function() {
     if (!this.groups || !this.groups.length) {
@@ -82,23 +84,33 @@ GroupedCollectionView = CollectionView.extend({
       this.clear_grouping(group);
     }
     else {
-      this.group_child_views(group);
+      this.group_child_views(group_name);
     }
     this.render();
   },
   grouped_render: function() {
     $(this.el).html(JST[this.template](this.collection));
     _.each(this.grouped_child_views, function(group, key) {
-      var group_css_id_selector = this.append_group_header(group, key);
-      _.each(group, function(child_view) {
-        this.append_to_group(group_css_id_selector, child_view.view);
-      }, this);
+      this.recursive_grouped_rendering(group, key);
     }, this);
     this.rendered = true;
     return this;
   },
+  recursive_grouped_rendering: function(group, key) {
+    var group_css_id_selector = this.append_group_header(group, key);
+    if (this.already_grouped(group)) {
+      _.each(group, function(subgroup, subkey) {
+        this.recursive_grouped_rendering(subgroup, subkey);
+      }, this);
+    }
+    else {
+      _.each(group, function(child_view) {
+        this.append_to_group(group_css_id_selector, child_view.view);
+      }, this);
+    }
+  },
   clear_grouping: function(group) {
-    this.grouped_child_views.length = 0;
+    this.grouped_child_views = {};
     if (group) {
       group.active = false;
     }
@@ -138,7 +150,6 @@ GroupedCollectionView = CollectionView.extend({
    * @return {string}
    */
   name_for_group: function(group, group_name) {
-    var model = _(group).first().view.model;
     return group_name + '('+ group.length +')';
   },
   /**
