@@ -96,7 +96,7 @@ GroupedCollectionView = CollectionView.extend({
     var tpl = _.template(this.group_header_template);
     var group_css_id_selector = this.generate_css_id_selector_for_group(group, key);
     this.$(this.list_selector).append(tpl({
-      name: this.name_for_group(group),
+      name: this.name_for_group(group, key),
       id: group_css_id_selector.substr(1)
     }));
     return group_css_id_selector;
@@ -113,12 +113,12 @@ GroupedCollectionView = CollectionView.extend({
    * Provides a sane default, but you will probably want to override
    * this method.
    * @param {Object} group
+   * @param {string} group_name
    * @return {string}
    */
-  name_for_group: function(group) {
-    var active_group = this.active_group();
+  name_for_group: function(group, group_name) {
     var model = _(group).first().view.model;
-    return active_group.name + '('+ group.length +')';
+    return group_name + '('+ group.length +')';
   },
   /**
    * css id selector to target a group
@@ -130,7 +130,7 @@ GroupedCollectionView = CollectionView.extend({
    * @return {string}
    */
   generate_css_id_selector_for_group: function(group, key) {
-    var id = '#' + _.uniqueId(this.name_for_group(group).replace(/\s/g, '-').toLowerCase().replace(/[():\+\.]/g,'') + '-');
+    var id = '#' + _.uniqueId(this.name_for_group(group, key).replace(/\s/g, '-').toLowerCase().replace(/[():\+\.]/g,'') + '-');
     this.grouped_view_map[key] = id;
     return id;
   },
