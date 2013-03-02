@@ -5,8 +5,8 @@ Filterer = BaseView.extend({
     }
     this.filtered_view = options.filtered_view;
     this.assigned_views = [];
-    // default to single filtering
-    this.single_filter = options.single_filter || true;
+    // default to multi filtering
+    this.single_filter = options.single_filter || false;
     this.on('after_filter', this.render);
     this.render();
   },

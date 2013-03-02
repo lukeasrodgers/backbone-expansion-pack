@@ -50,7 +50,13 @@ describe('Filterer', function() {
       this.view.$('a:first').click();
       expect(this.filtered_view.child_views.length).toBe(1);
     });
+    it('should default to multi filter behaviour', function() {
+      expect(this.filtered_view.child_views.length).toBe(1);
+      this.view.$('a:last').click();
+      expect(this.filtered_view.child_views.length).toBe(0);
+    });
     it('should clear filters if single_filter is true', function() {
+      this.view.single_filter = true;
       expect(this.filtered_view.child_views.length).toBe(1);
       this.view.$('a:last').click();
       expect(this.filtered_view.child_views.length).toBe(1);
