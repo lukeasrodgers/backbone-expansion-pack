@@ -1,4 +1,43 @@
 describe('GroupedCollectionView', function() {
+  describe('group_child_views', function() {
+    beforeEach(function() {
+      window.JST.tpl = _.template('some tpl <ul id="list"></ul>');
+      this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz', other_id: 1}, {id: 3, fiz: 'bazz', other_id: 1}, {id: 4, fiz: 'buzz', other_id: 2}, {id: 5, fiz: 'bazz', other_id: 2}, {id: 6, fiz: 'bazz', other_id: 2}]);
+    });
+    afterEach(function() {
+      delete window.JST.tpl;
+    });
+    it('should handle multiple groups', function() {
+      var constructor = GroupedCollectionView.extend({
+        child_view_constructor: Backbone.View,
+        template: 'tpl',
+        list_selector: '#list',
+        groups: [
+          {
+            name: 'other_id',
+            fn: function(child_view) {
+              return child_view.view.model.get('other_id');
+            },
+            active: true
+          },
+          {
+            name: 'fiz',
+            fn: function(child_view) {
+              return child_view.view.model.get('fiz');
+            },
+            active: false
+          }
+        ]
+      });
+      var view = new constructor({
+        collection: this.collection
+      });
+      view.render();
+      view.toggle_group('fiz');
+      expect(view.grouped_child_views[1].buzz.length).toBe(1);
+      expect(view.grouped_child_views[2].bazz.length).toBe(2);
+    });
+  });
   describe('initialize', function() {
     beforeEach(function() {
       this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz'}, {id: 3, fiz: 'buzz'}]);
@@ -246,11 +285,11 @@ describe('GroupedCollectionView', function() {
       describe('find_grouping_for', function() {
         it('should find the right group given a model', function() {
           this.view = new this.constructor({collection: this.collection, el: '#renderer'});
-          expect(this.view.find_grouping_for(this.collection.at(0)).group_key).toBe(1);
-          expect(this.view.find_grouping_for(this.collection.get(4)).group_key).toBe(2);
+          expect(this.view.find_grouping_for(this.collection.at(0)).group_keys).toEqual(['1']);
+          expect(this.view.find_grouping_for(this.collection.get(4)).group_keys).toEqual(['2']);
         });
       });
-      describe('updating group for a give', function() {
+      describe('updating group for a given view', function() {
         it('should NOT move a view to the correct new group if a tracked attribute changes on the model, but no update_grouping function', function() {
           this.view = new this.constructor({collection: this.collection, el: '#renderer'});
           this.view.render();
@@ -264,12 +303,71 @@ describe('GroupedCollectionView', function() {
           this.view = new this.constructor({collection: this.collection, el: '#renderer'});
           this.view.groups[0].update_grouping = function(changes) { return changes.other_id; };
           this.view.render();
+          expect(_.keys(this.view.grouped_child_views).length).toBe(2);
           expect(this.view.$('.grouped-collectionview-header:first li').length).toBe(2);
           expect(this.view.$('.grouped-collectionview-header:last li').length).toBe(3);
           this.view.collection.at(0).set('other_id', 2);
           expect(this.view.$('.grouped-collectionview-header:first li').length).toBe(1);
           expect(this.view.$('.grouped-collectionview-header:last li').length).toBe(4);
+          expect(_.keys(this.view.grouped_child_views).length).toBe(2);
         });
+      });
+    });
+    describe('multi grouping', function() {
+      beforeEach(function() {
+        this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz', other_id: 1}, {id: 3, fiz: 'bazz', other_id: 1}, {id: 4, fiz: 'buzz', other_id: 2}, {id: 5, fiz: 'bazz', other_id: 2}, {id: 6, fiz: 'buzz', other_id: 2}]);
+        this.constructor = GroupedCollectionView.extend({
+          child_view_constructor: this.child_view_constructor,
+          template: 'tpl',
+          list_selector: '#list',
+          groups: [
+            {
+              name: 'other_id',
+              fn: function(child_view) {
+                return child_view.view.model.get('other_id');
+              },
+              active: true
+            },
+            {
+              name: 'fiz',
+              fn: function(child_view) {
+                return child_view.view.model.get('fiz');
+              },
+              active: false
+            }
+          ]
+        });
+      });
+      it('should render multiple groups in nested lists', function() {
+        this.view = new this.constructor({
+          collection: this.collection
+        });
+        this.view.render();
+        this.view.toggle_group('fiz');
+        expect(this.view.$('#list li:first .grouped-collectionview-header li').length).toBe(1);
+        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(2);
+      });
+      it('should be able to toggle on and off subgroups', function() {
+        this.view = new this.constructor({
+          collection: this.collection
+        });
+        this.view.render();
+        expect(this.view.$('#list li:first li').length).toBe(2);
+        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(0);
+        this.view.toggle_group('fiz');
+        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(2);
+        this.view.toggle_group('fiz');
+        expect(this.view.$('#list li:first li').length).toBe(2);
+        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(0);
+      });
+      it('should move a view to the correct new group if a tracked attribute changes on the model, and there is an update_grouping function', function() {
+        this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+        this.view.groups[0].update_grouping = function(changes) { return changes.other_id; };
+        this.view.render();
+        this.view.toggle_group('fiz');
+        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(2);
+        this.view.collection.get(4).set('other_id', 1);
+        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(1);
       });
     });
     describe('render', function() {
