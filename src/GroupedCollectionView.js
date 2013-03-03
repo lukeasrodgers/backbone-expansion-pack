@@ -78,6 +78,11 @@ GroupedCollectionView = CollectionView.extend({
       return group.active;
     });
   },
+  active_groups: function() {
+    return _(this.groups).select(function(group) {
+      return group.active;
+    });
+  },
   toggle_group: function(group_name) {
     var group = this.find_group(group_name);
     if (group.active) {
@@ -96,14 +101,15 @@ GroupedCollectionView = CollectionView.extend({
     this.rendered = true;
     return this;
   },
-  recursive_grouped_rendering: function(group, key) {
-    var group_css_id_selector = this.append_group_header(group, key);
+  recursive_grouped_rendering: function(group, key, parent_group_css_id_selector) {
     if (this.already_grouped(group)) {
       _.each(group, function(subgroup, subkey) {
-        this.recursive_grouped_rendering(subgroup, subkey);
+        var group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector);
+        this.recursive_grouped_rendering(subgroup, subkey, group_css_id_selector);
       }, this);
     }
     else {
+      var group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector);
       _.each(group, function(child_view) {
         this.append_to_group(group_css_id_selector, child_view.view);
       }, this);
@@ -125,10 +131,11 @@ GroupedCollectionView = CollectionView.extend({
    * @param {Array.<Object>} group
    * @return {string} group id css selector
    */
-  append_group_header: function(group, key) {
+  append_group_header: function(group, key, parent_group_css_id_selector) {
     var tpl = _.template(this.group_header_template);
     var group_css_id_selector = this.generate_css_id_selector_for_group(group, key);
-    this.$(this.list_selector).append(tpl({
+    var selector = (parent_group_css_id_selector) ? parent_group_css_id_selector : this.list_selector;
+    this.$(selector).append(tpl({
       name: this.name_for_group(group, key),
       id: group_css_id_selector.substr(1)
     }));
@@ -150,7 +157,8 @@ GroupedCollectionView = CollectionView.extend({
    * @return {string}
    */
   name_for_group: function(group, group_name) {
-    return group_name + '('+ group.length +')';
+    var len = (group.length !== undefined) ? group.length : _.keys(group).length;
+    return group_name + '('+ len +')';
   },
   /**
    * css id selector to target a group
@@ -199,9 +207,11 @@ GroupedCollectionView = CollectionView.extend({
     if (!this.grouping_active()) {
       return;
     }
-    var active_group = this.active_group();
     var changes = options.changes;
-    if (active_group.update_grouping && active_group.update_grouping(changes)) {
+    var should_move = _(this.active_groups()).any(function(active_group) {
+      return active_group.update_grouping && active_group.update_grouping(changes);
+    });
+    if (should_move) {
       this.move_grouped_view(model);
     }
   },
@@ -216,30 +226,63 @@ GroupedCollectionView = CollectionView.extend({
     var grouped_child_view,
         containing_group_key;
     _(this.grouped_child_views).each(function(group, key) {
+      var contains = this.recursive_group_finding(model, group, [+key]);
+      if (contains) {
+        containing_group_keys = contains.group_keys;
+        grouped_child_view = contains.child_view;
+      }
+      return contains;
+    }, this);
+    return {child_view: grouped_child_view, group_keys: containing_group_keys};
+  },
+  /**
+   * @param {Object} group
+   * @param {Array} keys
+   * @return {{child_view: Object, group_keys: Array}}
+   */
+  recursive_group_finding: function(model, group, keys) {
+    if (this.already_grouped(group)) {
+      return _(group).detect(function(sub_group, k) {
+        var tracked_keys = keys.push(+k);
+        return this.recursive_group_finding(model, sub_group, tracked_keys);
+      }, this);
+    }
+    else {
       var contains = _(group).detect(function(child_view) {
         return child_view.view.model === model;
       });
+      var ret;
       if (contains) {
-        containing_group_key = +key;
-        grouped_child_view = contains;
+        ret = {
+          child_view: contains,
+          group_keys: keys
+        };
       }
-      return contains;
-    });
-    return {child_view: grouped_child_view, group_key: containing_group_key};
+      return ret;
+    }
   },
   move_grouped_view: function(model) {
     // figure out what group model is in
     var current_grouping = this.find_grouping_for(model);
-    var current_group_key = current_grouping.group_key;
+    console.log(current_grouping);
+    var current_group_keys = current_grouping.group_keys;
     var grouped_view = current_grouping.child_view;
     // figure out what group it should be in
     var target_group_key = this.determine_group_for_view(grouped_view.view);
     // if they are not the same, move it
-    if (current_group_key !== target_group_key) {
-      this.grouped_child_views[current_group_key] = _(this.grouped_child_views[current_group_key]).without(grouped_view);
+    if (current_group_keys !== target_group_key) {
+      var child_view_group = this.find_group_by_keys(current_group_keys);
+      child_view_group = _(child_view_group).without(grouped_view);
       this.grouped_child_views[target_group_key].push(grouped_view);
       var css_selector = this.get_css_id_selector_for_group(target_group_key);
       this.swap_to_group(css_selector, grouped_view.view);
     }
+  },
+  find_group_by_keys: function(keys) {
+    var obj = this.grouped_child_views;
+    for (var k in keys) {
+      obj = obj[keys[k]];
+    }
+    return obj;
   }
 });
