@@ -96,7 +96,7 @@ GroupedCollectionView = CollectionView.extend({
   grouped_render: function() {
     $(this.el).html(JST[this.template](this.collection));
     _.each(this.grouped_child_views, function(group, key) {
-      this.recursive_grouped_rendering(group, key);
+      this.recursive_grouped_rendering(group, [key]);
     }, this);
     this.rendered = true;
     return this;
@@ -104,8 +104,9 @@ GroupedCollectionView = CollectionView.extend({
   recursive_grouped_rendering: function(group, key, parent_group_css_id_selector) {
     if (this.already_grouped(group)) {
       _.each(group, function(subgroup, subkey) {
-        var group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector);
-        this.recursive_grouped_rendering(subgroup, subkey, group_css_id_selector);
+        var new_keys = key.concat(subkey);
+        var group_css_id_selector = this.append_group_header(group, new_keys, parent_group_css_id_selector);
+        this.recursive_grouped_rendering(subgroup, new_keys, group_css_id_selector);
       }, this);
     }
     else {
@@ -131,12 +132,12 @@ GroupedCollectionView = CollectionView.extend({
    * @param {Array.<Object>} group
    * @return {string} group id css selector
    */
-  append_group_header: function(group, key, parent_group_css_id_selector) {
+  append_group_header: function(group, keys, parent_group_css_id_selector) {
     var tpl = _.template(this.group_header_template);
-    var group_css_id_selector = this.generate_css_id_selector_for_group(group, key);
+    var group_css_id_selector = this.generate_css_id_selector_for_group(group, keys, parent_group_css_id_selector);
     var selector = (parent_group_css_id_selector) ? parent_group_css_id_selector : this.list_selector;
     this.$(selector).append(tpl({
-      name: this.name_for_group(group, key),
+      name: this.name_for_group(group, keys, parent_group_css_id_selector),
       id: group_css_id_selector.substr(1)
     }));
     return group_css_id_selector;
@@ -153,12 +154,12 @@ GroupedCollectionView = CollectionView.extend({
    * Provides a sane default, but you will probably want to override
    * this method.
    * @param {Object} group
-   * @param {string} group_name
+   * @param {Array} keys
    * @return {string}
    */
-  name_for_group: function(group, group_name) {
+  name_for_group: function(group, keys, parent_group_css_id_selector) {
     var len = (group.length !== undefined) ? group.length : _.keys(group).length;
-    return group_name + '('+ len +')';
+    return keys.join('_') + '('+ len +')';
   },
   /**
    * css id selector to target a group
@@ -169,13 +170,14 @@ GroupedCollectionView = CollectionView.extend({
    * @param {Array.<Object>}
    * @return {string}
    */
-  generate_css_id_selector_for_group: function(group, key) {
-    var id = '#' + _.uniqueId(this.name_for_group(group, key).replace(/\s/g, '-').toLowerCase().replace(/[():\+\.]/g,'') + '-');
-    this.grouped_view_map[key] = id;
+  generate_css_id_selector_for_group: function(group, keys, parent_g) {
+    // console.log('generating', parent_g, this.grouped_view_map);
+    var id = '#' + _.uniqueId(this.name_for_group(group, keys, parent_g).replace(/\s/g, '-').toLowerCase().replace(/[():\+\.]/g,'') + '-');
+    this.grouped_view_map[keys.join('_')] = id;
     return id;
   },
-  get_css_id_selector_for_group: function(key) {
-    return this.grouped_view_map[key];
+  get_css_id_selector_for_group: function(keys) {
+    return this.grouped_view_map[keys.join('_')];
   },
   /**
    * @param {string} group_name
@@ -188,8 +190,8 @@ GroupedCollectionView = CollectionView.extend({
       CollectionView.prototype.append.apply(this, arguments);
     }
     else {
-      var target_group_key = this.determine_groups_for_view(view);
-      var group_css_id_selector = this.get_css_id_selector_for_group(target_group_key);
+      var target_group_keys = this.determine_groups_for_view(view);
+      var group_css_id_selector = this.get_css_id_selector_for_group(target_group_keys);
       this.append_to_group(group_css_id_selector, view);
     }
   },
@@ -245,15 +247,18 @@ GroupedCollectionView = CollectionView.extend({
    */
   recursive_group_finding: function(model, group, keys) {
     if (this.already_grouped(group)) {
+      console.log('already grouped');
       return _(group).detect(function(sub_group, k) {
         var tracked_keys = keys.push(+k);
         return this.recursive_group_finding(model, sub_group, tracked_keys);
       }, this);
     }
     else {
+      console.log('lowest', group, model, group[0].view.model === model);
       var contains = _(group).detect(function(child_view) {
         return child_view.view.model === model;
       });
+      console.log('cont', contains);
       var ret;
       if (contains) {
         ret = {
@@ -261,27 +266,31 @@ GroupedCollectionView = CollectionView.extend({
           group_keys: keys
         };
       }
+      console.log('returning', ret);
       return ret;
     }
   },
   move_grouped_view: function(model) {
-    // figure out what group model is in
+    // figure out what groups view for this model model is in
     var current_grouping = this.find_grouping_for(model);
+    console.log('current grouping', current_grouping);
     var current_group_keys = current_grouping.group_keys;
+    console.log('cur grp keys', current_group_keys);
     var grouped_view = current_grouping.child_view;
-    // figure out what group it should be in
-    var target_group_key = this.determine_groups_for_view(grouped_view.view);
+    // figure out what groups it should be in
+    var target_group_keys = this.determine_groups_for_view(grouped_view.view);
     // if they are not the same, move it
-    if (current_group_keys !== target_group_key) {
-      var child_view_group = this.find_group_by_keys(current_group_keys);
+    if (!_.isEqual(current_group_keys, target_group_keys)) {
+      var child_view_group = this.find_by_keys(this.grouped_child_views, current_group_keys);
       child_view_group = _(child_view_group).without(grouped_view);
-      this.grouped_child_views[target_group_key].push(grouped_view);
-      var css_selector = this.get_css_id_selector_for_group(target_group_key);
+      var new_child_view_group = this.find_by_keys(this.grouped_child_views, target_group_keys);
+      new_child_view_group.push(grouped_view);
+      var css_selector = this.get_css_id_selector_for_group(target_group_keys);
       this.swap_to_group(css_selector, grouped_view.view);
     }
   },
-  find_group_by_keys: function(keys) {
-    var obj = this.grouped_child_views;
+  find_by_keys: function(groups, keys) {
+    var obj = groups;
     for (var k in keys) {
       obj = obj[keys[k]];
     }

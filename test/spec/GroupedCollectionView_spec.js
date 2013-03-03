@@ -351,9 +351,12 @@ describe('GroupedCollectionView', function() {
         this.view = new this.constructor({collection: this.collection, el: '#renderer'});
         this.view.groups[0].update_grouping = function(changes) { return changes.other_id; };
         this.view.render();
+        this.view.toggle_group('fiz');
+        console.log(this.view.$el.html());
         expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(2);
         this.view.collection.get(4).set('other_id', 1);
         expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(1);
+        console.log(this.view.$el.html());
       });
     });
     describe('render', function() {
