@@ -188,7 +188,7 @@ GroupedCollectionView = CollectionView.extend({
       CollectionView.prototype.append.apply(this, arguments);
     }
     else {
-      var target_group_key = this.determine_group_for_view(view);
+      var target_group_key = this.determine_groups_for_view(view);
       var group_css_id_selector = this.get_css_id_selector_for_group(target_group_key);
       this.append_to_group(group_css_id_selector, view);
     }
@@ -199,9 +199,12 @@ GroupedCollectionView = CollectionView.extend({
    * to retrieve its CSS selector. Note that this returns the group the view
    * *should* be in, not necessarily the one it currently *is* in.
    * @param {Backbone.View} view
+   * @return {Array}
    */
-  determine_group_for_view: function(view) {
-    return this.active_group().fn({view:view});
+  determine_groups_for_view: function(view) {
+    return _(this.active_groups()).reduce(function(acc, group) {
+      return acc.concat(group.fn({view:view}));
+    }, [], this);
   },
   maybe_adjust_grouping: function(model, options) {
     if (!this.grouping_active()) {
@@ -264,11 +267,10 @@ GroupedCollectionView = CollectionView.extend({
   move_grouped_view: function(model) {
     // figure out what group model is in
     var current_grouping = this.find_grouping_for(model);
-    console.log(current_grouping);
     var current_group_keys = current_grouping.group_keys;
     var grouped_view = current_grouping.child_view;
     // figure out what group it should be in
-    var target_group_key = this.determine_group_for_view(grouped_view.view);
+    var target_group_key = this.determine_groups_for_view(grouped_view.view);
     // if they are not the same, move it
     if (current_group_keys !== target_group_key) {
       var child_view_group = this.find_group_by_keys(current_group_keys);

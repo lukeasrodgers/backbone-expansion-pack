@@ -285,8 +285,8 @@ describe('GroupedCollectionView', function() {
       describe('find_grouping_for', function() {
         it('should find the right group given a model', function() {
           this.view = new this.constructor({collection: this.collection, el: '#renderer'});
-          expect(this.view.find_grouping_for(this.collection.at(0)).group_key).toEqual([1]);
-          expect(this.view.find_grouping_for(this.collection.get(4)).group_key).toEqual([2]);
+          expect(this.view.find_grouping_for(this.collection.at(0)).group_keys).toEqual([1]);
+          expect(this.view.find_grouping_for(this.collection.get(4)).group_keys).toEqual([2]);
         });
       });
       describe('updating group for a given view', function() {
@@ -354,7 +354,6 @@ describe('GroupedCollectionView', function() {
         expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(2);
         this.view.collection.get(4).set('other_id', 1);
         expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(1);
-        console.log(this.view.$el.html());
       });
     });
     describe('render', function() {
