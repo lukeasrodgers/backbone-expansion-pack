@@ -185,7 +185,7 @@ GroupedCollectionView = CollectionView.extend({
    * @return {string}
    */
   generate_css_id_selector_for_group: function(group, keys, parent_g, level) {
-    var id = '#' + _.uniqueId(this.name_for_group(group, keys, parent_g, level).replace(/\s/g, '-').toLowerCase().replace(/[():\+\.]/g,'') + '-');
+    var id = '#' + _.uniqueId(this.name_for_group(group, keys, parent_g, level).replace(/\s/g, '-').toLowerCase().replace(/[,():\+\.]/g,'') + '-');
     this.grouped_view_map[keys.join('_')] = id;
     return id;
   },

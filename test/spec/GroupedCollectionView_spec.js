@@ -499,4 +499,31 @@ describe('GroupedCollectionView', function() {
       });
     });
   });
+  describe('generate_css_id_selector_for_group', function() {
+    beforeEach(function() {
+      window.JST.tpl = _.template('some tpl <ul id="list"></ul>');
+      this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz, inc.', other_id: 1}, {id: 3, fiz: 'buzz 2, inc', other_id: 1}]);
+      this.constructor = GroupedCollectionView.extend({
+        template: 'tpl',
+        child_view_constructor: Backbone.View,
+        list_selector: '#list',
+        groups: [{
+          name: 'fiz',
+          fn: function(child_view) {
+            return child_view.view.model.get('fiz');
+          },
+          active: true
+        }]
+      });
+    });
+    afterEach(function() {
+      this.view.remove();
+      delete window.JST.tpl;
+    });
+    it('should strip commas from group names', function() {
+      this.view = new this.constructor({collection: this.collection});
+      this.view.render();
+      expect(this.view.$('#list ul:first').attr('id')).not.toContain(',');
+    });
+  });
 });
