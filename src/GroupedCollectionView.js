@@ -244,7 +244,8 @@ GroupedCollectionView = CollectionView.extend({
    * @param {Backbone.Moel}
    */
   find_grouping_for: function(model) {
-    var grouped_child_view;
+    var grouped_child_view,
+        containing_group_keys;
     _(this.grouped_child_views).each(function(group, key) {
       var contains = this.recursive_group_finding(model, group, [key]);
       if (contains) {
