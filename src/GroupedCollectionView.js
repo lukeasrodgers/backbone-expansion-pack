@@ -151,9 +151,10 @@ GroupedCollectionView = CollectionView.extend({
     }
   },
   reset: function() {
-    var active_group = this.active_group();
+    _(this.active_groups()).each(function(active_group) {
+      this.clear_grouping(active_group);
+    }, this);
     this.grouped_view_map = {};
-    this.clear_grouping(active_group);
     CollectionView.prototype.reset.apply(this, arguments);
   },
   /**
