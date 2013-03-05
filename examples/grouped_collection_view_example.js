@@ -5,44 +5,56 @@
       id: 0,
       name: 'ghost',
       scariness: 'really',
-      real: true
+      real: 'yes'
     },
     {
       id: 1,
       name: 'vampire',
       scariness: 'sorta',
-      real: false
+      real: 'no'
     },
     {
       id: 2,
       name: 'mummy',
       scariness: 'not so much',
-      real: true
+      real: 'yes'
     },
     {
       id: 3,
       name: 'frank einstein',
       scariness: 'sorta',
-      real: false
+      real: 'no'
     },
     {
       id: 4,
       name: 'werewolf',
       scariness: 'pretty',
-      real: true
+      real: 'yes'
     },
     {
       id: 5,
       name: 'president palin',
       scariness: 'really',
-      real: true
+      real: 'yes'
     }
   ]);
   JST = {};
-  JST.child_tpl = _.template('<%= name %>: <%= scariness %> scary, <% if (real) { %> and <% } else { %> but not <% } %> real.');
+  JST.child_tpl = _.template('<%= name %>: <%= scariness %> scary, <% if (real === "yes") { %> and <% } else { %> but not <% } %> real. <a href="#" class="toggle_reality">toggle reality</a>');
   var MyModelView = ModelView.extend({
     tagName: 'li',
-    template: 'child_tpl'
+    template: 'child_tpl',
+    initialize: function() {
+      this.model.on('change', this.render, this);
+    },
+    events: {
+      'click .toggle_reality': 'toggle_reality'
+    },
+    toggle_reality: function(e) {
+      e.preventDefault();
+      var real = this.model.get('real');
+      real = (real === 'yes') ? 'no' : 'yes';
+      this.model.set('real', real);
+    }
   });
 
   JST.coll_tpl = _.template('<ul id="list"></ul>');

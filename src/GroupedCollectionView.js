@@ -5,12 +5,16 @@ GroupedCollectionView = CollectionView.extend({
     this.on('after:initialize_child_views', this.group_if_active, this);
     this.collection.on('change', this.maybe_adjust_grouping, this);
     this.grouped_view_map = {};
+    this.applied_groups = [];
     this.multi_grouping = options.multi_grouping || this.multi_grouping || true;
     CollectionView.prototype.initialize.apply(this, arguments);
   },
   group_if_active: function() {
     if (this.grouping_active()) {
-      this.group_child_views();
+      this.applied_groups.length = 0;
+      _.each(this.active_groups(), function(group) {
+        this.grouped_child_views = this.apply_grouping(group, this.child_views);
+      }, this);
     }
   },
   /**
@@ -49,6 +53,9 @@ GroupedCollectionView = CollectionView.extend({
       }, {}, this);
     }
     else {
+      if (!_(this.applied_groups).any(function(g) { return g.name === group.name; })) {
+        this.applied_groups.push(group);
+      }
       return _(child_views).groupBy(group.fn);
     }
   },
@@ -86,6 +93,7 @@ GroupedCollectionView = CollectionView.extend({
   toggle_group: function(group_name) {
     var group = this.find_group(group_name);
     if (group.active) {
+      this.applied_groups = _(this.applied_groups).without(group);
       this.clear_grouping(group);
     }
     else {
@@ -122,6 +130,7 @@ GroupedCollectionView = CollectionView.extend({
     }
     this.grouped_child_views = {};
     if (this.grouping_active()) {
+      this.applied_groups.lengh = 0;
       _.each(this.active_groups(), function(group) {
         this.grouped_child_views = this.apply_grouping(group, this.child_views);
       }, this);
@@ -208,7 +217,7 @@ GroupedCollectionView = CollectionView.extend({
    * @return {Array}
    */
   determine_groups_for_view: function(view) {
-    return _(this.active_groups()).reduce(function(acc, group) {
+    return _(this.applied_groups).reduce(function(acc, group) {
       return acc.concat(group.fn({view:view}));
     }, [], this);
   },

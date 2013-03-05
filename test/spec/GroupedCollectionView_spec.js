@@ -322,18 +322,18 @@ describe('GroupedCollectionView', function() {
           list_selector: '#list',
           groups: [
             {
-              name: 'other_id',
-              fn: function(child_view) {
-                return child_view.view.model.get('other_id');
-              },
-              active: true
-            },
-            {
               name: 'fiz',
               fn: function(child_view) {
                 return child_view.view.model.get('fiz');
               },
               active: false
+            },
+            {
+              name: 'other_id',
+              fn: function(child_view) {
+                return child_view.view.model.get('other_id');
+              },
+              active: true
             }
           ]
         });
