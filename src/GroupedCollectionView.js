@@ -104,21 +104,22 @@ GroupedCollectionView = CollectionView.extend({
   grouped_render: function() {
     $(this.el).html(JST[this.template](this.collection));
     _.each(this.grouped_child_views, function(group, key) {
-      this.recursive_grouped_rendering(group, [key]);
+      this.recursive_grouped_rendering(group, [key], undefined, -1);
     }, this);
     this.rendered = true;
     return this;
   },
-  recursive_grouped_rendering: function(group, key, parent_group_css_id_selector) {
+  recursive_grouped_rendering: function(group, key, parent_group_css_id_selector, level) {
+    level++;
     if (this.already_grouped(group)) {
       _.each(group, function(subgroup, subkey) {
         var new_keys = key.concat(subkey);
-        var group_css_id_selector = this.append_group_header(group, new_keys, parent_group_css_id_selector);
-        this.recursive_grouped_rendering(subgroup, new_keys, group_css_id_selector);
+        var group_css_id_selector = this.append_group_header(group, new_keys, parent_group_css_id_selector, level);
+        this.recursive_grouped_rendering(subgroup, new_keys, group_css_id_selector, level);
       }, this);
     }
     else {
-      var group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector);
+      var group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector, level);
       _.each(group, function(child_view) {
         this.append_to_group(group_css_id_selector, child_view.view);
       }, this);
@@ -145,12 +146,12 @@ GroupedCollectionView = CollectionView.extend({
    * @param {Array.<Object>} group
    * @return {string} group id css selector
    */
-  append_group_header: function(group, keys, parent_group_css_id_selector) {
+  append_group_header: function(group, keys, parent_group_css_id_selector, level) {
     var tpl = _.template(this.group_header_template);
-    var group_css_id_selector = this.generate_css_id_selector_for_group(group, keys, parent_group_css_id_selector);
+    var group_css_id_selector = this.generate_css_id_selector_for_group(group, keys, parent_group_css_id_selector, level);
     var selector = (parent_group_css_id_selector) ? parent_group_css_id_selector : this.list_selector;
     this.$(selector).append(tpl({
-      name: this.name_for_group(group, keys, parent_group_css_id_selector),
+      name: this.name_for_group(group, keys, parent_group_css_id_selector, level),
       id: group_css_id_selector.substr(1)
     }));
     return group_css_id_selector;
@@ -170,9 +171,8 @@ GroupedCollectionView = CollectionView.extend({
    * @param {Array} keys
    * @return {string}
    */
-  name_for_group: function(group, keys, parent_group_css_id_selector) {
-    var len = (group.length !== undefined) ? group.length : _.keys(group).length;
-    return keys.join('_') + '('+ len +')';
+  name_for_group: function(group, keys, parent_group_css_id_selector, level) {
+    return this.applied_groups[level].name + ': ' + keys[level];
   },
   /**
    * css id selector to target a group
@@ -183,8 +183,8 @@ GroupedCollectionView = CollectionView.extend({
    * @param {Array.<Object>}
    * @return {string}
    */
-  generate_css_id_selector_for_group: function(group, keys, parent_g) {
-    var id = '#' + _.uniqueId(this.name_for_group(group, keys, parent_g).replace(/\s/g, '-').toLowerCase().replace(/[():\+\.]/g,'') + '-');
+  generate_css_id_selector_for_group: function(group, keys, parent_g, level) {
+    var id = '#' + _.uniqueId(this.name_for_group(group, keys, parent_g, level).replace(/\s/g, '-').toLowerCase().replace(/[():\+\.]/g,'') + '-');
     this.grouped_view_map[keys.join('_')] = id;
     return id;
   },
