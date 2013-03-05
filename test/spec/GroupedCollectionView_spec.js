@@ -246,11 +246,7 @@ describe('GroupedCollectionView', function() {
               return child_view.view.model.get('other_id');
             },
             active: true
-          }],
-          name_for_group: function(group) {
-            var model = _(group).first().view.model;
-            return "Other id: " + model.get('other_id');
-          }
+          }]
         });
       });
       it('should group childviews', function() {
@@ -258,7 +254,7 @@ describe('GroupedCollectionView', function() {
         this.view = new this.constructor({collection: this.collection, el: '#renderer'});
         this.view.render();
         expect(this.view.$('#list li').length).toBe(7);
-        expect(this.view.$('#list li:first').html()).toContain('Other id: 1');
+        expect(this.view.$('#list li:first').html()).toContain('some_group');
         expect(this.view.$('#list li:nth-of-type(2)').html()).toContain('buzz');
         this.view.$('#list li:nth-of-type(2) .clicker').click();
         expect(clicker_spy).toHaveBeenCalled();

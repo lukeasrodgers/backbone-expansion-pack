@@ -18,16 +18,16 @@ GroupedCollectionView = CollectionView.extend({
     }
   },
   /**
-   * @param {Object|string} group either a {name: string, fn: Function} object or
-   * a {string} name of the group
+   * @param {string} group_name
    */
-  group_child_views: function(group) {
-    if (!group && !this.groups) {
+  group_child_views: function(group_name) {
+    var group;
+    if (!group_name && !this.groups) {
       return;
     }
     else {
-      if (typeof group === 'string') {
-        group = this.find_group(group);
+      if (typeof group_name === 'string') {
+        group = this.find_group(group_name);
       }
       else {
         group = this.groups[0];
@@ -45,6 +45,10 @@ GroupedCollectionView = CollectionView.extend({
     }
     group.active = true;
   },
+  /**
+   * @param {Object} group
+   * @param {Object} child_views
+   */
   apply_grouping: function(group, child_views) {
     if (this.already_grouped(child_views)) {
       return _.reduce(child_views, function(acc, sub_child, key) {
@@ -59,9 +63,15 @@ GroupedCollectionView = CollectionView.extend({
       return _(child_views).groupBy(group.fn);
     }
   },
+  /**
+   * @return {boolean}
+   */
   already_grouped: function(x) {
     return _.isArray(_(x).values()[0]);
   },
+  /**
+   * @return {boolean}
+   */
   grouping_active: function() {
     if (!this.groups || !this.groups.length) {
       return false;
@@ -72,6 +82,9 @@ GroupedCollectionView = CollectionView.extend({
       });
     }
   },
+  /**
+   * @return {Object} this
+   */
   render: function() {
     if (!this.grouping_active()) {
       return CollectionView.prototype.render.apply(this, arguments);
@@ -109,18 +122,18 @@ GroupedCollectionView = CollectionView.extend({
     this.rendered = true;
     return this;
   },
-  recursive_grouped_rendering: function(group, key, parent_group_css_id_selector, level) {
+  recursive_grouped_rendering: function(group, keys, parent_group_css_id_selector, level) {
     level++;
     var group_css_id_selector;
     if (this.already_grouped(group)) {
-      group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector, level);
+      group_css_id_selector = this.append_group_header(keys, parent_group_css_id_selector, level);
       _.each(group, function(subgroup, subkey) {
-        var new_keys = key.concat(subkey);
+        var new_keys = keys.concat(subkey);
         this.recursive_grouped_rendering(subgroup, new_keys, group_css_id_selector, level);
       }, this);
     }
     else {
-      group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector, level);
+      group_css_id_selector = this.append_group_header(keys, parent_group_css_id_selector, level);
       _.each(group, function(child_view) {
         this.append_to_group(group_css_id_selector, child_view.view);
       }, this);
@@ -144,23 +157,33 @@ GroupedCollectionView = CollectionView.extend({
     CollectionView.prototype.reset.apply(this, arguments);
   },
   /**
-   * @param {Array.<Object>} group
+   * @param {Array} keys
+   * @param {string} parent_group_css_id_selector
+   * @param {number} level
    * @return {string} group id css selector
    */
-  append_group_header: function(group, keys, parent_group_css_id_selector, level) {
+  append_group_header: function(keys, parent_group_css_id_selector, level) {
     var tpl = _.template(this.group_header_template);
-    var group_css_id_selector = this.generate_css_id_selector_for_group(group, keys, parent_group_css_id_selector, level);
+    var group_css_id_selector = this.generate_css_id_selector_for_group(keys, level);
     var selector = (parent_group_css_id_selector) ? parent_group_css_id_selector : this.list_selector;
     this.$(selector).append(tpl({
-      name: this.name_for_group(group, keys, parent_group_css_id_selector, level),
+      name: this.name_for_group(keys, level),
       id: group_css_id_selector.substr(1)
     }));
     return group_css_id_selector;
   },
+  /**
+   * @param {string} group_css_id_selector
+   * @param {Object} view
+   */
   append_to_group: function(group_css_id_selector, view) {
     view.delegateEvents();
     this.$(group_css_id_selector).append(view.render().el);
   },
+  /**
+   * @param {string} group_css_id_selector
+   * @param {Object} view
+   */
   swap_to_group: function(group_css_id_selector, view) {
     var $el = view.$el.detach();
     this.$(group_css_id_selector).append($el);
@@ -168,13 +191,11 @@ GroupedCollectionView = CollectionView.extend({
   /**
    * Provides a sane default, but you will probably want to override
    * this method.
-   * @param {Object} group
    * @param {Array} keys
-   * @param {string} parent_group_css_id_selector
    * @param {number} level depth level of this group in child group hierarchy
    * @return {string}
    */
-  name_for_group: function(group, keys, parent_group_css_id_selector, level) {
+  name_for_group: function(keys, level) {
     return this.applied_groups[level].name + ': ' + keys[level];
   },
   /**
@@ -182,18 +203,20 @@ GroupedCollectionView = CollectionView.extend({
    * some simple transformations:
    * switch whitespace to hyphen, remove some punctuation, toLowerCase()
    * e.g 'namE for group: id' => 'name-for-group-1'
-   * override at will, just make sure it returns a string of form '#...'
-   * @param {Array.<Object>} group
+   * override the id generation at will, just make sure it returns a unique string of form '#...'
+   * and leave the modification of grouped_view_map intact
    * @param {Array} keys
-   * @param {string} parent_g
    * @param {number} level
    * @return {string}
    */
-  generate_css_id_selector_for_group: function(group, keys, parent_g, level) {
-    var id = '#' + _.uniqueId(this.name_for_group(group, keys, parent_g, level).replace(/\s/g, '-').toLowerCase().replace(/[,():\+\.]/g,'') + '-');
+  generate_css_id_selector_for_group: function(keys, level) {
+    var id = '#' + _.uniqueId(this.name_for_group(keys, level).replace(/\s/g, '-').toLowerCase().replace(/[,():\+\.]/g,'') + '-');
     this.grouped_view_map[keys.join('_')] = id;
     return id;
   },
+  /**
+   * @param {Array} keys
+   */
   get_css_id_selector_for_group: function(keys) {
     return this.grouped_view_map[keys.join('_')];
   },
@@ -203,6 +226,9 @@ GroupedCollectionView = CollectionView.extend({
   find_group: function(group_name) {
     return _(this.groups).detect(function(g) { return g.name === group_name; });
   },
+  /**
+   * @param {Object} view
+   */
   append: function(view) {
     if (!this.grouping_active()) {
       CollectionView.prototype.append.apply(this, arguments);
@@ -247,7 +273,7 @@ GroupedCollectionView = CollectionView.extend({
    * for a given model. Note that this returns the group the view
    * is *actually* in, not necessarily the group it *should* be in.
    * TODO make this faster
-   * @param {Backbone.Moel}
+   * @param {Backbone.Model}
    */
   find_grouping_for: function(model) {
     var grouped_child_view,
@@ -314,7 +340,7 @@ GroupedCollectionView = CollectionView.extend({
   },
   /**
    * Generic method for descending through an object given
-   * an array of correctly ordered for that object.
+   * an array of correctly ordered keys for that object.
    * @param {Object} groups
    * @param {Array} keys
    * @return {Object}
@@ -332,11 +358,22 @@ GroupedCollectionView = CollectionView.extend({
     }
     return obj;
   },
+  /**
+   * Do in-place removal of a grouped view from its current group.
+   * @param {Object} grouped_view
+   * @param {Array} group_keys
+   */
   remove_view_from_current_grouping: function(grouped_view, group_keys) {
     var group = this.find_by_keys(this.grouped_child_views, group_keys);
     var index = _(group).indexOf(grouped_view);
     group.splice(index, 1);
   },
+  /**
+   * Welcome a view into its new home.
+   * TODO this method is inefficient right now.
+   * @param {Object} grouped_view
+   * @param {Array} group_keys
+   */
   add_view_to_new_grouping: function(grouped_view, group_keys) {
     var new_child_view_group = this.find_by_keys(this.grouped_child_views, group_keys);
     if (new_child_view_group.length) {
