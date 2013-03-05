@@ -340,13 +340,14 @@ GroupedCollectionView = CollectionView.extend({
     }
   },
   /**
-   * Generic method for descending through an object given
-   * an array of correctly ordered keys for that object.
+   * Find an array on an object by descending through given a
+   * correctly ordered array of keys. If it doesn't find the array,
+   * create it.
    * @param {Object} groups
    * @param {Array} keys
    * @return {Object}
    */
-  find_by_keys: function(groups, keys) {
+  find_or_create_by_keys: function(groups, keys) {
     var obj = groups;
     for (var k in keys) {
       if (obj[keys[k]]) {
@@ -365,7 +366,7 @@ GroupedCollectionView = CollectionView.extend({
    * @param {Array} group_keys
    */
   remove_view_from_current_grouping: function(grouped_view, group_keys) {
-    var group = this.find_by_keys(this.grouped_child_views, group_keys);
+    var group = this.find_or_create_by_keys(this.grouped_child_views, group_keys);
     var index = _(group).indexOf(grouped_view);
     group.splice(index, 1);
   },
@@ -376,7 +377,7 @@ GroupedCollectionView = CollectionView.extend({
    * @param {Array} group_keys
    */
   add_view_to_new_grouping: function(grouped_view, group_keys) {
-    var new_child_view_group = this.find_by_keys(this.grouped_child_views, group_keys);
+    var new_child_view_group = this.find_or_create_by_keys(this.grouped_child_views, group_keys);
     if (new_child_view_group.length) {
       new_child_view_group.push(grouped_view);
     }
