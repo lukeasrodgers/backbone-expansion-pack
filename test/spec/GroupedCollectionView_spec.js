@@ -344,8 +344,8 @@ describe('GroupedCollectionView', function() {
         });
         this.view.render();
         this.view.toggle_group('fiz');
-        expect(this.view.$('#list li:first .grouped-collectionview-header li').length).toBe(1);
-        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(2);
+        expect(this.view.$('#list li:first .grouped-collectionview-header li').length).toBe(2);
+        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(0);
       });
       it('should be able to toggle on and off subgroups', function() {
         this.view = new this.constructor({
@@ -353,36 +353,36 @@ describe('GroupedCollectionView', function() {
         });
         this.view.render();
         expect(this.view.$('#list li:first li').length).toBe(2);
-        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(0);
+        expect(this.view.$('#list li:first .grouped-collectionview-header').length).toBe(0);
         this.view.toggle_group('fiz');
-        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(2);
+        expect(this.view.$('#list li:first .grouped-collectionview-header').length).toBe(2);
         this.view.toggle_group('fiz');
         expect(this.view.$('#list li:first li').length).toBe(2);
-        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(0);
+        expect(this.view.$('#list li:first .grouped-collectionview-header').length).toBe(0);
       });
       it('should move a view to the correct new group if a tracked attribute changes on the model, and there is an update_grouping function', function() {
         this.view = new this.constructor({collection: this.collection, el: '#renderer'});
         this.view.groups[0].update_grouping = function(changes) { return changes.foo; };
         this.view.render();
         this.view.toggle_group('fiz');
-        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(2);
+        expect(this.view.$('#list > li:last .grouped-collectionview-header:first li').length).toBe(2);
         this.view.collection.get(4).set('foo', 'bar');
-        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(1);
+        expect(this.view.$('#list > li:last .grouped-collectionview-header:first li').length).toBe(1);
         this.view.collection.get(4).set('foo', 'baz');
-        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(2);
+        expect(this.view.$('#list > li:last .grouped-collectionview-header:first li').length).toBe(2);
         this.view.collection.get(4).set('foo', 'bar');
-        expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(1);
+        expect(this.view.$('#list > li:last .grouped-collectionview-header:first li').length).toBe(1);
       });
       it('should be able to move a view into a new group', function() {
         this.view = new this.constructor({collection: this.collection, el: '#renderer'});
         this.view.groups[0].update_grouping = function(changes) { return changes.foo; };
         this.view.render();
         this.view.toggle_group('fiz');
-        expect(this.view.$('#list li:nth-child(1) .grouped-collectionview-header li').length).toBe(1);
+        expect(this.view.$('#list li:first li:first li').length).toBe(1);
         this.view.collection.get(2).set('foo', 'bazinga');
-        expect(this.view.$('#list li:nth-child(1) .grouped-collectionview-header li').length).toBe(0);
+        expect(this.view.$('#list li:first li:first li').length).toBe(0);
         this.view.collection.get(2).set('foo', 'bar');
-        expect(this.view.$('#list li:nth-child(1) .grouped-collectionview-header li').length).toBe(1);
+        expect(this.view.$('#list li:first li:first li').length).toBe(1);
       });
     });
     describe('render', function() {

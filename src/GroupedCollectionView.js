@@ -111,15 +111,16 @@ GroupedCollectionView = CollectionView.extend({
   },
   recursive_grouped_rendering: function(group, key, parent_group_css_id_selector, level) {
     level++;
+    var group_css_id_selector;
     if (this.already_grouped(group)) {
+      group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector, level);
       _.each(group, function(subgroup, subkey) {
         var new_keys = key.concat(subkey);
-        var group_css_id_selector = this.append_group_header(group, new_keys, parent_group_css_id_selector, level);
         this.recursive_grouped_rendering(subgroup, new_keys, group_css_id_selector, level);
       }, this);
     }
     else {
-      var group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector, level);
+      group_css_id_selector = this.append_group_header(group, key, parent_group_css_id_selector, level);
       _.each(group, function(child_view) {
         this.append_to_group(group_css_id_selector, child_view.view);
       }, this);
