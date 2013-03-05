@@ -373,6 +373,17 @@ describe('GroupedCollectionView', function() {
         this.view.collection.get(4).set('foo', 'bar');
         expect(this.view.$('#list li:nth-child(3) .grouped-collectionview-header li').length).toBe(1);
       });
+      it('should be able to move a view into a new group', function() {
+        this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+        this.view.groups[0].update_grouping = function(changes) { return changes.foo; };
+        this.view.render();
+        this.view.toggle_group('fiz');
+        expect(this.view.$('#list li:nth-child(1) .grouped-collectionview-header li').length).toBe(1);
+        this.view.collection.get(2).set('foo', 'bazinga');
+        expect(this.view.$('#list li:nth-child(1) .grouped-collectionview-header li').length).toBe(0);
+        this.view.collection.get(2).set('foo', 'bar');
+        expect(this.view.$('#list li:nth-child(1) .grouped-collectionview-header li').length).toBe(1);
+      });
     });
     describe('render', function() {
       it('should append child view elements to the node specified by list selector, with events bound', function() {

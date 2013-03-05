@@ -130,7 +130,6 @@ GroupedCollectionView = CollectionView.extend({
     }
     this.grouped_child_views = {};
     if (this.grouping_active()) {
-      this.applied_groups.lengh = 0;
       _.each(this.applied_groups, function(group) {
         this.grouped_child_views = this.apply_grouping(group, this.child_views);
       }, this);
@@ -316,7 +315,13 @@ GroupedCollectionView = CollectionView.extend({
   find_by_keys: function(groups, keys) {
     var obj = groups;
     for (var k in keys) {
-      obj = obj[keys[k]];
+      if (obj[keys[k]]) {
+        obj = obj[keys[k]];
+      }
+      else {
+        obj[keys[k]] = [];
+        return obj[keys[k]];
+      }
     }
     return obj;
   },
@@ -327,6 +332,14 @@ GroupedCollectionView = CollectionView.extend({
   },
   add_view_to_new_grouping: function(grouped_view, group_keys) {
     var new_child_view_group = this.find_by_keys(this.grouped_child_views, group_keys);
-    new_child_view_group.push(grouped_view);
+    if (new_child_view_group.length) {
+      new_child_view_group.push(grouped_view);
+    }
+    else {
+      new_child_view_group.push(grouped_view);
+      // TODO this is overkill probably, could be more surgical
+      // need to create new group
+      this.grouped_render();
+    }
   }
 });

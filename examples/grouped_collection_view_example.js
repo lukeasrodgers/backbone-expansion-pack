@@ -36,6 +36,12 @@
       name: 'president palin',
       scariness: 'really',
       real: 'yes'
+    },
+    {
+      id: 6,
+      name: 'godzilla',
+      scariness: 'not so much',
+      real: 'no'
     }
   ]);
   JST = {};
