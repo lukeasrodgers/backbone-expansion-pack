@@ -131,7 +131,7 @@ GroupedCollectionView = CollectionView.extend({
     this.grouped_child_views = {};
     if (this.grouping_active()) {
       this.applied_groups.lengh = 0;
-      _.each(this.active_groups(), function(group) {
+      _.each(this.applied_groups, function(group) {
         this.grouped_child_views = this.apply_grouping(group, this.child_views);
       }, this);
     }
@@ -230,7 +230,7 @@ GroupedCollectionView = CollectionView.extend({
       return;
     }
     var changes = options.changes;
-    var should_move = _(this.active_groups()).any(function(active_group) {
+    var should_move = _(this.applied_groups).any(function(active_group) {
       return active_group.update_grouping && active_group.update_grouping(changes);
     });
     if (should_move) {
@@ -300,10 +300,8 @@ GroupedCollectionView = CollectionView.extend({
     var target_group_keys = this.determine_groups_for_view(grouped_view.view);
     // if they are not the same, move it
     if (!_.isEqual(current_group_keys, target_group_keys)) {
-      var child_view_group = this.find_by_keys(this.grouped_child_views, current_group_keys);
-      child_view_group = _(child_view_group).without(grouped_view);
-      var new_child_view_group = this.find_by_keys(this.grouped_child_views, target_group_keys);
-      new_child_view_group.push(grouped_view);
+      this.remove_view_from_current_grouping(grouped_view, current_group_keys);
+      this.add_view_to_new_grouping(grouped_view, target_group_keys);
       var css_selector = this.get_css_id_selector_for_group(target_group_keys);
       this.swap_to_group(css_selector, grouped_view.view);
     }
@@ -321,5 +319,14 @@ GroupedCollectionView = CollectionView.extend({
       obj = obj[keys[k]];
     }
     return obj;
+  },
+  remove_view_from_current_grouping: function(grouped_view, group_keys) {
+    var group = this.find_by_keys(this.grouped_child_views, group_keys);
+    var index = _(group).indexOf(grouped_view);
+    group.splice(index, 1);
+  },
+  add_view_to_new_grouping: function(grouped_view, group_keys) {
+    var new_child_view_group = this.find_by_keys(this.grouped_child_views, group_keys);
+    new_child_view_group.push(grouped_view);
   }
 });
