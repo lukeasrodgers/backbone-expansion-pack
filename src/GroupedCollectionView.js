@@ -106,7 +106,6 @@ GroupedCollectionView = CollectionView.extend({
   toggle_group: function(group_name) {
     var group = this.find_group(group_name);
     if (group.active) {
-      this.applied_groups = _(this.applied_groups).without(group);
       this.clear_grouping(group);
     }
     else {
@@ -142,6 +141,7 @@ GroupedCollectionView = CollectionView.extend({
   clear_grouping: function(group) {
     if (group) {
       group.active = false;
+      this.applied_groups = _(this.applied_groups).without(group);
     }
     this.grouped_child_views = {};
     if (this.grouping_active()) {
