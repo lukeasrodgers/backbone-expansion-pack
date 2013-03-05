@@ -170,6 +170,8 @@ GroupedCollectionView = CollectionView.extend({
    * this method.
    * @param {Object} group
    * @param {Array} keys
+   * @param {string} parent_group_css_id_selector
+   * @param {number} level depth level of this group in child group hierarchy
    * @return {string}
    */
   name_for_group: function(group, keys, parent_group_css_id_selector, level) {
@@ -181,7 +183,10 @@ GroupedCollectionView = CollectionView.extend({
    * switch whitespace to hyphen, remove some punctuation, toLowerCase()
    * e.g 'namE for group: id' => 'name-for-group-1'
    * override at will, just make sure it returns a string of form '#...'
-   * @param {Array.<Object>}
+   * @param {Array.<Object>} group
+   * @param {Array} keys
+   * @param {string} parent_g
+   * @param {number} level
    * @return {string}
    */
   generate_css_id_selector_for_group: function(group, keys, parent_g, level) {
