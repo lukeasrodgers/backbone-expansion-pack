@@ -99,6 +99,8 @@ More or less full coverage tests using jasmine currently exist for:
 - CollectionView
 - FilteredCollectionView
 - FiltererView
+- GroupedCollectionView
+- GrouperView
 - backbone\_mixin
 
 You can run the tests by opening `test/SpecRunner.html`.
