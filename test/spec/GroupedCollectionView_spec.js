@@ -307,6 +307,19 @@ describe('GroupedCollectionView', function() {
           expect(this.view.$('.grouped-collectionview-header:last li').length).toBe(4);
           expect(_.keys(this.view.grouped_child_views).length).toBe(2);
         });
+        it('should remove the group if we remove the last child from it', function() {
+          this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+          this.view.groups[0].update_grouping = function(changes) { return changes.other_id; };
+          this.view.render();
+          expect(_.keys(this.view.grouped_child_views).length).toBe(2);
+          expect(this.view.$('.grouped-collectionview-header').length).toBe(2);
+          this.view.collection.at(0).set('other_id', 2);
+          this.view.collection.at(1).set('other_id', 2);
+          expect(this.view.$('.grouped-collectionview-header:first li').length).toBe(5);
+          expect(this.view.$('.grouped-collectionview-header').length).toBe(1);
+          expect(_.keys(this.view.grouped_child_views)).not.toContain('1');
+          expect(_.keys(this.view.grouped_child_views).length).toBe(1);
+        });
       });
     });
     describe('multi grouping', function() {
@@ -374,11 +387,11 @@ describe('GroupedCollectionView', function() {
         this.view.groups[0].update_grouping = function(changes) { return changes.foo; };
         this.view.render();
         this.view.toggle_group('fiz');
-        expect(this.view.$('#list li:first li:first li').length).toBe(1);
+        expect(this.view.$('#list li:first li li').length).toBe(2);
         this.view.collection.get(2).set('foo', 'bazinga');
-        expect(this.view.$('#list li:first li:first li').length).toBe(0);
+        expect(this.view.$('#list li:first li li').length).toBe(1);
         this.view.collection.get(2).set('foo', 'bar');
-        expect(this.view.$('#list li:first li:first li').length).toBe(1);
+        expect(this.view.$('#list li:first li li').length).toBe(2);
       });
     });
     describe('render', function() {

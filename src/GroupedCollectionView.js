@@ -333,10 +333,10 @@ GroupedCollectionView = CollectionView.extend({
     var target_group_keys = this.determine_groups_for_view(grouped_view.view);
     // if they are not the same, move it
     if (!_.isEqual(current_group_keys, target_group_keys)) {
-      this.remove_view_from_current_grouping(grouped_view, current_group_keys);
-      this.add_view_to_new_grouping(grouped_view, target_group_keys);
       var css_selector = this.get_css_id_selector_for_group(target_group_keys);
       this.swap_to_group(css_selector, grouped_view.view);
+      this.remove_view_from_current_grouping(grouped_view, current_group_keys);
+      this.add_view_to_new_grouping(grouped_view, target_group_keys);
     }
   },
   /**
@@ -361,6 +361,23 @@ GroupedCollectionView = CollectionView.extend({
     return obj;
   },
   /**
+   * Find an array on an object by descending through given a
+   * correctly ordered array of keys, and delete it.
+   * @param {Object} groups
+   * @param {Array} keys
+   */
+  delete_by_keys: function(groups, keys) {
+    var obj = groups,
+        i = 0,
+        len = keys.length,
+        key;
+    while (i < len - 1) {
+      obj = obj[keys[i]];
+      i++;
+    }
+    delete obj[keys[i]];
+  },
+  /**
    * Do in-place removal of a grouped view from its current group.
    * @param {Object} grouped_view
    * @param {Array} group_keys
@@ -369,6 +386,9 @@ GroupedCollectionView = CollectionView.extend({
     var group = this.find_or_create_by_keys(this.grouped_child_views, group_keys);
     var index = _(group).indexOf(grouped_view);
     group.splice(index, 1);
+    if (group.length === 0) {
+      this.remove_empty_group(group, group_keys);
+    }
   },
   /**
    * Welcome a view into its new home.
@@ -387,5 +407,14 @@ GroupedCollectionView = CollectionView.extend({
       // need to create new group
       this.grouped_render();
     }
+  },
+  /**
+   * @param {Array} group empty array, formerly holding child view objects
+   * @param {Array} array of keys for the now empty group
+   */
+  remove_empty_group: function(group, group_keys) {
+    var empty_selector = this.get_css_id_selector_for_group(group_keys);
+    this.$(empty_selector).closest('li').remove();
+    this.delete_by_keys(this.grouped_child_views, group_keys);
   }
 });
