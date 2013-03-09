@@ -16,7 +16,6 @@ API that has been introduced as Backbone approaches 1.0 (e.g.
 
 Docs in progress.
 
-
 ### BaseView
 
 Provides methods for assigning child views and tearing them down when
@@ -58,6 +57,26 @@ var MyModelView = ModelView.extend({
 var my_model_view = new MyModelView({model: new Backbone.Model()});
 my_model_view.render();
 ```
+
+### GroupedCollectionView
+
+Provides a way to group views in a collection view according to model properties.
+
+Supports: 
+
+- multiply nested grouping
+- group toggling
+- dynamic regrouping when watched model change
+
+Built to work with `GrouperView` that controls grouping.
+
+Example in /examples.
+
+### GrouperView
+
+Built to work with GroupedCollectionView, provides a way to toggle groupings on an off.
+
+Example in /examples.
 
 ### Backbone Mixin
 
