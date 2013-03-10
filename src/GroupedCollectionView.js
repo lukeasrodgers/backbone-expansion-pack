@@ -1,5 +1,5 @@
 GroupedCollectionView = CollectionView.extend({
-  group_header_template: '<li class="grouped-collectionview-header"><%= name %><ul id="<%= id %>"></ul></li>',
+  group_header_template: '<li class="grouped-collectionview-header"><%= name %><ul class="grouped-list" id="<%= id %>"></ul></li>',
   initialize: function(options) {
     this.grouped_child_views = {};
     this.on('after:initialize_child_views', this.group_if_active, this);
