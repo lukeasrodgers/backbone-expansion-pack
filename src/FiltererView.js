@@ -26,7 +26,7 @@ Filterer = BaseView.extend({
   },
   toggle_filter: function(e) {
     e.preventDefault();
-    var filter_name = $(e.target).data('filter');
+    var filter_name = $(e.target).data('filterName');
     if (filter_name === 'all') {
       this.clear_filters(filter_name);
       this.trigger('after_filter');

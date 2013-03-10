@@ -2,7 +2,7 @@ describe('Filterer', function() {
   beforeEach(function() {
     this.collection = new Backbone.Collection([{id: 2, fiz: 'buzz'}, {id: 3, fiz: 'buzz'}]);
     window.JST.tpl = _.template('some tpl <ul id="list"></ul>');
-    window.JST.filterer_tpl = _.template('<a href="#" class="filter" data-filter="id">Id filter</a><a href="#" class="filter" data-filter="buzz">Buzz Filter</a>');
+    window.JST.filterer_tpl = _.template('<a href="#" class="filter" data-filter-name="id">Id filter</a><a href="#" class="filter" data-filter-name="buzz">Buzz Filter</a>');
     var constructor = FilteredCollectionView.extend({
       template: 'tpl',
       child_view_constructor: Backbone.View,
