@@ -74,7 +74,26 @@ Example in /examples.
 
 ### GrouperView
 
-Built to work with GroupedCollectionView, provides a way to toggle groupings on an off.
+Built to work with GroupedCollectionView, provides a way to toggle groupings on and off.
+
+Example in /examples.
+
+### FilteredCollectionView
+
+Provides a way to locally filter views in a collection according to model properties.
+
+Supports:
+
+- multiple filters
+- filter toggling
+- union filtering without group, intersection filtering across groups
+- TODO filter should be dynamically applied when relevant model properties change
+
+Example in /examples.
+
+### FiltererView
+
+Built to work with FilteredCollectionView, provides a way to toggle filters on and off.
 
 Example in /examples.
 
