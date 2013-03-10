@@ -1,5 +1,5 @@
 CollectionView = BaseView.extend({
-  initialize : function(options) {
+  initialize: function(options) {
     BaseView.prototype.initialize.apply(this, arguments);
     if (!this.child_view_constructor) {
       throw "no child view constructor provided: " + this.template;
