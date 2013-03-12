@@ -7,7 +7,9 @@ FilteredCollectionView = CollectionView.extend({
     this.trigger('after:initialize_child_views');
   },
   /**
-   * @parm {Backbone.Model}
+   * TODO this is really slow. Does a bunch of stuff for each
+   * model that actually only needs to happen once per filter.
+   * @param {Backbone.Model}
    */
   filter: function(model) {
     var fn;
