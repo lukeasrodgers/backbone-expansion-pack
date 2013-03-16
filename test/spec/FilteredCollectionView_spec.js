@@ -26,8 +26,10 @@ describe('FilteredCollectionView', function() {
         template: 'tpl',
         child_view_constructor: Backbone.View,
         list_selector: '#list',
-        filters: [
-          function(model) { return false; }
+        filters: [{
+          active: true,
+          fn: function(model) { return false; }
+        }
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
@@ -39,8 +41,14 @@ describe('FilteredCollectionView', function() {
         child_view_constructor: Backbone.View,
         list_selector: '#list',
         filters: [
-          function(model) { return model.get('id') !== 2; },
-          function(model) { return model.get('fiz') === 'buzz';}
+          {
+            active: true,
+            fn: function(model) { return model.get('id') !== 2; }
+          },
+          {
+            active: true,
+            fn: function(model) { return model.get('fiz') === 'buzz';}
+          }
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
@@ -151,7 +159,10 @@ describe('FilteredCollectionView', function() {
         child_view_constructor: Backbone.View,
         list_selector: '#list',
         filters: [
-          function(model) {return false;}
+          {
+            active: true,
+            fn: function(model) {return false;}
+          }
         ]
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
@@ -177,21 +188,6 @@ describe('FilteredCollectionView', function() {
       this.view.clear_filters();
       expect(this.view.child_views.length).toBe(3);
       expect(this.view.filters.length).toBe(1);
-    });
-    it('should entirely destroy filters if they cannot be disabled, i.e. if they are just functions', function() {
-      var constructor = FilteredCollectionView.extend({
-        template: 'tpl',
-        child_view_constructor: Backbone.View,
-        list_selector: '#list',
-        filters: [
-          function(model) {return false;}
-        ]
-      });
-      this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(this.view.child_views.length).toBe(0);
-      this.view.clear_filters();
-      expect(this.view.child_views.length).toBe(3);
-      expect(this.view.filters.length).toBe(0);
     });
     it('should should leave a filter active if it is passed the right args', function() {
       var constructor = FilteredCollectionView.extend({
@@ -223,7 +219,7 @@ describe('FilteredCollectionView', function() {
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
       expect(this.view.child_views.length).toBe(3);
-      this.view.add_filter(function(model) { return model.get('fiz') !== 'buzz';});
+      this.view.add_filter({active: true, fn: function(model) { return model.get('fiz') !== 'buzz';}});
       expect(this.view.child_views.length).toBe(1);
     });
   });
@@ -247,21 +243,6 @@ describe('FilteredCollectionView', function() {
       this.view.remove_filter('id');
       expect(this.view.child_views.length).toBe(3);
     });
-    it('should be able to remove a filter by name', function() {
-      var filter = function(model) { return model.get('id') !== 2; };
-      var constructor = FilteredCollectionView.extend({
-        template: 'tpl',
-        child_view_constructor: Backbone.View,
-        list_selector: '#list',
-        filters: [
-          filter
-        ]
-      });
-      this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(this.view.child_views.length).toBe(2);
-      this.view.remove_filter(filter);
-      expect(this.view.child_views.length).toBe(3);
-    });
   });
   describe('find_filter', function() {
     it('should be able to find a filter by name', function() {
@@ -280,19 +261,6 @@ describe('FilteredCollectionView', function() {
       });
       this.view = new constructor({collection: this.collection, el: '#renderer'});
       expect(this.view.find_filter('id')).toBe(filter);
-    });
-    it('should be able to find a filter by function comparison', function() {
-      var filter = function(model) { return model.get('id') !== 2; };
-      var constructor = FilteredCollectionView.extend({
-        template: 'tpl',
-        child_view_constructor: Backbone.View,
-        list_selector: '#list',
-        filters: [
-          filter
-        ]
-      });
-      this.view = new constructor({collection: this.collection, el: '#renderer'});
-      expect(this.view.find_filter(filter)).toBe(filter);
     });
   });
   describe('activate_filter', function() {

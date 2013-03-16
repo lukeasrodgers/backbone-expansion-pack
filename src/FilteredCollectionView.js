@@ -24,25 +24,22 @@ FilteredCollectionView = CollectionView.extend({
     }
   },
   /**
-   * TODO this is really slow. Does a bunch of stuff for each
-   * model that actually only needs to happen once per filter.
+   * This is still pretty slow.
    * @param {Backbone.Model}
    * @param {Object} grouped_active_filters
    * @param {Function} logical_filter_relation
    */
   filter: function(model, grouped_active_filters, logical_filter_relation) {
-    var fn;
     return _.reduce(grouped_active_filters, function(acc, filter_group) {
       return acc && logical_filter_relation(filter_group, function(filter) {
-        fn = _.isFunction(filter) ? filter : filter.fn;
-        return fn(model);
+        return filter.fn(model);
       });
     }, true);
   },
   grouped_active_filters: function() {
     return _.chain(this.filters).
       select(function(filter) {
-        return (_.isFunction(filter)) ? filter : filter.active;
+        return filter.active;
       }).
       groupBy('group_name').value();
   },
@@ -50,16 +47,12 @@ FilteredCollectionView = CollectionView.extend({
    * @param {Object=} opts
    */
   clear_filters: function(opts) {
-    // if we can, just deactivate the filter
+    // deactivate the filter
     _(this.filters).each(function(filter) {
-      if (!_.isFunction(filter)) {
-        if (!opts || (opts && filter.name !== opts.except)) {
-          filter.active = false;
-        }
+      if (!opts || (opts && filter.name !== opts.except)) {
+        filter.active = false;
       }
     });
-    // if it's a function, remove it
-    this.filters = _(this.filters).reject(function(filter) { return _.isFunction(filter); });
     this.reset();
   },
   /**
@@ -98,12 +91,7 @@ FilteredCollectionView = CollectionView.extend({
    */
   find_filter: function(filter) {
     return _(this.filters).detect(function(f) {
-      if (_.isFunction(f)) {
-        return (_.isFunction(filter)) ? f === filter : f === filter.fn;
-      }
-      else {
-        return (_.isFunction(filter)) ? f.fn === filter : f.name === filter;
-      }
+      return (_.isFunction(filter)) ? f.fn === filter : f.name === filter;
     });
   }
 });
