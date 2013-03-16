@@ -151,6 +151,42 @@ describe('FilteredCollectionView', function() {
       this.view = new constructor({collection: this.collection, el: '#renderer'});
       expect(this.view.child_views.length).toBe(1);
     });
+    it('should remove views if their attributes change such that they should be filtered out', function() {
+      var constructor = FilteredCollectionView.extend({
+        template: 'tpl',
+        child_view_constructor: Backbone.View,
+        list_selector: '#list',
+        filters: [
+          {
+            name: 'id',
+            fn: function(model) { return model.get('id') !== 2; },
+            active: true
+          }
+        ]
+      });
+      this.view = new constructor({collection: this.collection, el: '#renderer'});
+      expect(this.view.child_views.length).toBe(2);
+      this.collection.at(1).set('id', 2);
+      expect(this.view.child_views.length).toBe(1);
+    });
+    it('should remove views if their attributes change such that they should be filtered out', function() {
+      var constructor = FilteredCollectionView.extend({
+        template: 'tpl',
+        child_view_constructor: Backbone.View,
+        list_selector: '#list',
+        filters: [
+          {
+            name: 'id',
+            fn: function(model) { return model.get('id') !== 2; },
+            active: true
+          }
+        ]
+      });
+      this.view = new constructor({collection: this.collection, el: '#renderer'});
+      expect(this.view.child_views.length).toBe(2);
+      this.collection.at(0).set('id', 5);
+      expect(this.view.child_views.length).toBe(3);
+    });
   });
   describe('clear_filters', function() {
     it('should clear all filtering', function() {

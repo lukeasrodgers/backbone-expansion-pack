@@ -87,7 +87,7 @@ Supports:
 - multiple filters
 - filter toggling
 - union filtering without group, intersection filtering across groups
-- TODO filter should be dynamically applied when relevant model properties change
+- dynamic updating of views based on changes to filtered model properties
 
 The following code creates a filtered collection view that can be filtered to show only
 items from organization 1 or 2 and by default only shows active items.

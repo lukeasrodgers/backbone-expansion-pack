@@ -1,4 +1,8 @@
 FilteredCollectionView = CollectionView.extend({
+  initialize: function() {
+    this.collection.on('change', this.filter_model_changes, this);
+    CollectionView.prototype.initialize.apply(this, arguments);
+  },
   initialize_child_views: function() {
     if (!this.filters || !this.filters.length) {
       CollectionView.prototype.initialize_child_views.call(this);
@@ -93,5 +97,43 @@ FilteredCollectionView = CollectionView.extend({
     return _(this.filters).detect(function(f) {
       return (_.isFunction(filter)) ? f.fn === filter : f.name === filter;
     });
-  }
+  },
+  /**
+   * @param {Backbone.Model}
+   * @param {Object} options
+   */
+  filter_model_changes: function(model, options) {
+    if (!this.filters || !this.filters.length) {
+      return;
+    }
+    var child_view;
+    var changes = options.changes;
+    var grouped_active_filters = this.grouped_active_filters();
+    var any_groups = _.keys(grouped_active_filters).length > 1 || !grouped_active_filters['undefined'];
+    var logical_filter_relation;
+    if (any_groups) {
+      logical_filter_relation = _.any;
+    }
+    else {
+      logical_filter_relation = _.all;
+    }
+    var should_show = this.filter(model, grouped_active_filters, logical_filter_relation);
+    if (should_show) {
+      child_view = this.find_view(model);
+      if (child_view) {
+        // view should be displayed, and is, so nothing to do
+        return;
+      }
+      else {
+        // view should be displayed but isn't, so create and render it
+      }
+      child_view = this.new_child_view(model);
+      this.child_views.push(child_view);
+      this.append(child_view.view);
+    }
+    else {
+      // view is shown but shouldn't be
+      this.remove_child(model);
+    }
+  },
 });
