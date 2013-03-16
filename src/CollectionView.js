@@ -57,6 +57,7 @@ CollectionView = BaseView.extend({
 
     _.each(this.child_views, function(child_view, index) {
       this.append(child_view.view);
+      child_view.rendered = true;
     }, this);
 
     this.rendered = true;

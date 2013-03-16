@@ -201,6 +201,12 @@ describe('CollectionView', function() {
         this.view.$('#list li:first .clicker').click();
         expect(clicker_spy).toHaveBeenCalled();
       });
+      it('should mark child views as rendered', function() {
+        var clicker_spy = spyOn(this.child_view_constructor.prototype, 'click');
+        this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+        this.view.render();
+        expect(_.all(this.view.child_views, function(v) { return v.rendered; })).toBe(true);
+      });
     });
     describe('append', function() {
       it('should append a view and bind events', function() {
