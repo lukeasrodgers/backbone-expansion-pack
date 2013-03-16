@@ -1,20 +1,7 @@
 FilteredCollectionView = CollectionView.extend({
   initialize_child_views: function() {
-    var that = this;
-    this.child_views = this.collection.select(function(model) { return that.filter(model); }).map(function(model) {
-      return this.new_child_view(model);
-    }, this);
-    this.trigger('after:initialize_child_views');
-  },
-  /**
-   * TODO this is really slow. Does a bunch of stuff for each
-   * model that actually only needs to happen once per filter.
-   * @param {Backbone.Model}
-   */
-  filter: function(model) {
-    var fn;
     if (!this.filters || !this.filters.length) {
-      return true;
+      CollectionView.prototype.initialize_child_views.call(this);
     }
     else {
       var grouped_active_filters = this.grouped_active_filters();
@@ -26,13 +13,31 @@ FilteredCollectionView = CollectionView.extend({
       else {
         logical_filter_relation = _.all;
       }
-      return _.reduce(grouped_active_filters, function(acc, filter_group) {
-        return acc && logical_filter_relation(filter_group, function(filter) {
-          fn = _.isFunction(filter) ? filter : filter.fn;
-          return fn(model);
-        });
-      }, true);
+      this.child_views = this.collection.
+        select(function(model) {
+          return this.filter(model, grouped_active_filters, logical_filter_relation);
+        }, this).
+        map(function(model) {
+          return this.new_child_view(model);
+        }, this);
+      this.trigger('after:initialize_child_views');
     }
+  },
+  /**
+   * TODO this is really slow. Does a bunch of stuff for each
+   * model that actually only needs to happen once per filter.
+   * @param {Backbone.Model}
+   * @param {Object} grouped_active_filters
+   * @param {Function} logical_filter_relation
+   */
+  filter: function(model, grouped_active_filters, logical_filter_relation) {
+    var fn;
+    return _.reduce(grouped_active_filters, function(acc, filter_group) {
+      return acc && logical_filter_relation(filter_group, function(filter) {
+        fn = _.isFunction(filter) ? filter : filter.fn;
+        return fn(model);
+      });
+    }, true);
   },
   grouped_active_filters: function() {
     return _.chain(this.filters).
