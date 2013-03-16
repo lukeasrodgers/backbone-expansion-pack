@@ -25,7 +25,7 @@ Requires a template, which is a string referencing a template on a
 global JST object.
 
 
-```
+```javascript
 var ChildView = BaseView.extend({
   template: 'child_tpl'
 });
@@ -50,7 +50,7 @@ parent_view.render();
 Provides simple `render` method to pass the model's attributes to the
 template.
 
-```
+```javascript
 var MyModelView = ModelView.extend({
   template: 'model_view_tpl'
 });
