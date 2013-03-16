@@ -89,6 +89,43 @@ Supports:
 - union filtering without group, intersection filtering across groups
 - TODO filter should be dynamically applied when relevant model properties change
 
+The following code creates a filtered collection view that can be filtered to show only
+items from organization 1 or 2 and by default only shows active items.
+
+```javascript
+var view = FilteredCollectionView.extend({
+  template: 'my_tpl',
+  list_selector: '#list',
+  child_view_constructor: ModelView,
+  filters: [
+    {
+      name: 'oranization_1',
+      group_name: 'organizations',
+      fn: function(model) {
+        return model.get('organization_id') === 1;
+      },
+      active: false
+    },
+    {
+      name: 'oranization_2',
+      group_name: 'organizations',
+      fn: function(model) {
+        return model.get('organization_id') === 2;
+      },
+      active: false
+    },
+    {
+      name: 'active',
+      group_name: 'active',
+      fn: function(model) {
+        return model.get('active') === true;
+      },
+      active: true
+    }
+  ]
+});
+```
+
 Example in /examples.
 
 ### FiltererView
