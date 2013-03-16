@@ -135,5 +135,5 @@ FilteredCollectionView = CollectionView.extend({
       // view is shown but shouldn't be
       this.remove_child(model);
     }
-  },
+  }
 });
