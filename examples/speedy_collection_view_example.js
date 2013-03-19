@@ -9,9 +9,11 @@
       SpeedyCollectionModelView.prototype.initialize.call(this);
       // TODO this won't work
       this.model.on('change', this.render, this);
-      this.on('submit', this.submit, this);
+      _.each(this.proxied_events, function(event) {
+        this.on(event, this[event], this);
+      }, this);
     },
-    events: {
+    proxied_events: {
       'submit form': 'submit'
     },
     submit: function(e) {
@@ -27,7 +29,7 @@
     child_view_constructor: MyModelView,
     initialize: function() {
       SpeedyCollectionView.prototype.initialize.apply(this, arguments);
-      var model_events = _.reduce(this.child_view_constructor.prototype.events, function(acc, v, k) {
+      var model_events = _.reduce(this.child_view_constructor.prototype.proxied_events, function(acc, v, k) {
         acc[k] = 'proxy_to_model';
         return acc;
       }, {});
