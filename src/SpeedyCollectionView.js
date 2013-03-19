@@ -20,10 +20,6 @@ SpeedyCollectionView = CollectionView.extend({
       return acc + child_view.view.template_html();
     }, '', this);
     this.$(this.list_selector).html(html);
-    _.each(this.child_views, function(child_view) {
-      console.log('setting el for', this.$('#'+child_view.view.id).length);
-      child_view.view.setElement(this.$('#'+child_view.view.id), true);
-    }, this);
     this.rendered = true;
     return this;
   },

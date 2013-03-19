@@ -9,13 +9,11 @@
       SpeedyCollectionModelView.prototype.initialize.call(this);
       // TODO this won't work
       this.model.on('change', this.render, this);
-    },
-    events: {
-      'submit form': 'submit'
+      this.on('submit', this.submit, this);
     },
     submit: function(e) {
       e.preventDefault();
-      console.log('submit');
+      console.log('submitted', e);
     }
   });
 
@@ -24,6 +22,13 @@
     template: 'coll_tpl',
     list_selector: '#list',
     child_view_constructor: MyModelView,
+    events: {
+      'submit form': 'model_submit'
+    },
+    model_submit: function(e) {
+      var view = this.view_for_event(e);
+      view.trigger('submit', e);
+    }
   });
 
   var init = function() {
