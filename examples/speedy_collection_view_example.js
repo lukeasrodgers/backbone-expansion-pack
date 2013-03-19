@@ -2,23 +2,31 @@
 
   var collection = new Backbone.Collection(window.data);
   JST = {};
-  JST.child_tpl = _.template('<h3>id: <%= id %></h3><div>name: <%= name %></div><form class="foo"><input name="name" /><input type="submit" /></form>');
+  JST.child_tpl = _.template('<h3>id: <%= id %></h3><div>name: <%= name %></div><form class="foo"><input name="name" /><input class="submit_form" type="submit" /></form>');
   var MyModelView = SpeedyCollectionModelView.extend({
     template: 'child_tpl',
     initialize: function() {
       SpeedyCollectionModelView.prototype.initialize.call(this);
       // TODO this won't work
       this.model.on('change', this.render, this);
-      _.each(this.proxied_events, function(event) {
-        this.on(event, this[event], this);
+      _.each(this.proxied_events, function(event, key) {
+        key = key.replace(/\s/g, '_');
+        this.on(key, function(e) {
+          console.log('handle', arguments, 'event:', event, 'key:', key);
+          this[event](e);
+        }, this);
       }, this);
     },
     proxied_events: {
-      'submit form': 'submit'
+      'click input.submit_form': 'click_submit',
+      'click h3': 'click_input'
     },
-    submit: function(e) {
+    click_submit: function(e) {
       e.preventDefault();
       console.log('submitted', e);
+    },
+    click_input: function() {
+      console.log('click h3');
     }
   });
 
@@ -33,14 +41,9 @@
         acc[k] = 'proxy_to_model';
         return acc;
       }, {});
+      this.events = this.events || {};
       this.events = _.extend(this.events, model_events);
       console.log(this.events);
-    },
-    events: {
-      'click input': 'click_input'
-    },
-    click_input: function(e) {
-      console.log('clicked input');
     }
   });
 

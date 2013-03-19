@@ -68,7 +68,10 @@ SpeedyCollectionView = CollectionView.extend({
 
   proxy_to_model: function(e) {
     var view = this.view_for_event(e);
-    view.trigger(e.type, e);
+    var target_class_name = e.target.className;
+    var event_name = e.type + '_' + e.target.localName + '.' + target_class_name;
+    console.log('proxy', event_name, e);
+    view.trigger(event_name, e);
   }
 
 });
