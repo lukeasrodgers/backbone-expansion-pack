@@ -19,11 +19,7 @@ SpeedyCollectionModelView = BaseView.extend({
   },
   bind_proxied_events: function() {
     _.each(this.proxied_events, function(event, key) {
-      key = key.replace(/\s/g, '_');
-      this.on(key, function(e) {
-        console.log('handle', arguments, 'event:', event, 'key:', key);
-        this[event](e);
-      }, this);
+      this.on(key.replace(/\s/g, '_'), this[event], this);
     }, this);
   }
 });
