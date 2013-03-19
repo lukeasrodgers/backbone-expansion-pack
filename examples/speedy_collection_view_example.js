@@ -9,13 +9,6 @@
       SpeedyCollectionModelView.prototype.initialize.call(this);
       // TODO this won't work
       this.model.on('change', this.render, this);
-      _.each(this.proxied_events, function(event, key) {
-        key = key.replace(/\s/g, '_');
-        this.on(key, function(e) {
-          console.log('handle', arguments, 'event:', event, 'key:', key);
-          this[event](e);
-        }, this);
-      }, this);
     },
     proxied_events: {
       'click input.submit_form': 'click_submit',
