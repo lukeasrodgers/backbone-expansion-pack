@@ -11,6 +11,9 @@
       this.model.on('change', this.render, this);
       this.on('submit', this.submit, this);
     },
+    events: {
+      'submit form': 'submit'
+    },
     submit: function(e) {
       e.preventDefault();
       console.log('submitted', e);
@@ -22,12 +25,20 @@
     template: 'coll_tpl',
     list_selector: '#list',
     child_view_constructor: MyModelView,
-    events: {
-      'submit form': 'model_submit'
+    initialize: function() {
+      SpeedyCollectionView.prototype.initialize.apply(this, arguments);
+      var model_events = _.reduce(this.child_view_constructor.prototype.events, function(acc, v, k) {
+        acc[k] = 'proxy_to_model';
+        return acc;
+      }, {});
+      this.events = _.extend(this.events, model_events);
+      console.log(this.events);
     },
-    model_submit: function(e) {
-      var view = this.view_for_event(e);
-      view.trigger('submit', e);
+    events: {
+      'click input': 'click_input'
+    },
+    click_input: function(e) {
+      console.log('clicked input');
     }
   });
 

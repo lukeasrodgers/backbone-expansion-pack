@@ -64,6 +64,11 @@ SpeedyCollectionView = CollectionView.extend({
     var id = $(e.currentTarget).closest('.speedy-model-view').get(0).id;
     var child_view = this.view_by_id(id);
     return child_view.view;
+  },
+
+  proxy_to_model: function(e) {
+    var view = this.view_for_event(e);
+    view.trigger(e.type, e);
   }
 
 });
