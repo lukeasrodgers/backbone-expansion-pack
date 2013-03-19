@@ -2,7 +2,6 @@
  * @constructor
 */
 SpeedyCollectionModelView = BaseView.extend({
-  id: _.uniqueId('speedy_view_'),
   tagName: 'li',
   initialize: function() {
     if (!this.template) {
@@ -12,9 +11,9 @@ SpeedyCollectionModelView = BaseView.extend({
       throw new Error('No model provided');
     }
     this.assigned_views = [];
+    this.id = _.uniqueId('speedy_view_');
   },
   template_html: function() {
     return '<' + this.tagName + ' class="speedy-model-view" id="'+ this.id +'">' + JST[this.template](_.clone(this.model.attributes)) + '</' + this.tagName + '>';
   }
 });
-
