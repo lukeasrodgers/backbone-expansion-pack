@@ -9,7 +9,7 @@ CollectionView = BaseView.extend({
     }
 
     this.initialize_child_views();
-    this.collection.bind('reset', this.reset);
+    this.collection.bind('reset', this.reset, this);
     this.collection.bind('add', this.add_child, this);
     this.collection.bind('remove', this.remove_child, this);
   },
