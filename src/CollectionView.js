@@ -44,7 +44,7 @@ CollectionView = BaseView.extend({
     this.$(this.list_selector).append(view.render().el);
   },
 
-	prepend: function(view) {
+  prepend: function(view) {
     this.$(this.list_selector).prepend(view.render().el);
   },
 
