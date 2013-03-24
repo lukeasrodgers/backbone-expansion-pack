@@ -207,6 +207,12 @@ describe('CollectionView', function() {
         this.view.render();
         expect(_.all(this.view.child_views, function(v) { return v.rendered; })).toBe(true);
       });
+      it('should show empty text if there is any and the collection is empty', function() {
+        this.view = new this.constructor({collection: new Backbone.Collection([]), el: '#renderer'});
+        this.view.empty_text = 'No children';
+        this.view.render();
+        expect(this.view.$el.html()).toContain('No children');
+      });
     });
     describe('append', function() {
       it('should append a view and bind events', function() {
@@ -266,6 +272,14 @@ describe('CollectionView', function() {
         this.view.add_child(new Backbone.Model({fiz: 'fuzz'}));
         expect(this.view.$('li:last').html()).toContain('fuzz');
       });
+      it('should remove existing empty text if the collection was empty', function() {
+        this.view = new this.constructor({collection: new Backbone.Collection([]), el: '#renderer'});
+        this.view.empty_text = 'No children';
+        this.view.render();
+        expect(this.view.$el.html()).toContain('No children');
+        this.view.add_child(new Backbone.Model({fiz: 'fuzz'}));
+        expect(this.view.$el.html()).not.toContain('No children');
+      });
     });
     describe('remove_child', function() {
       it('should remove a child view by matching its model', function() {
@@ -274,6 +288,14 @@ describe('CollectionView', function() {
         this.view.remove_child(this.collection.get(3));
         expect(this.view.child_views.length).toBe(1);
         expect(this.view.$el.html()).not.toContain('buzzard');
+      });
+      it('should show empty_text if collection is now empty', function() {
+        this.view = new this.constructor({collection: this.collection, el: '#renderer'});
+        this.view.empty_text = 'No children';
+        this.view.render();
+        expect(this.view.$el.html()).not.toContain('No children');
+        this.collection.remove(this.collection.models);
+        expect(this.view.$el.html()).toContain('No children');
       });
     });
     describe('remove', function() {

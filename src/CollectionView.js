@@ -54,21 +54,31 @@ CollectionView = BaseView.extend({
 
   render: function() {
     $(this.el).html(JST[this.template](this.collection));
-
-    _.each(this.child_views, function(child_view, index) {
-      this.append(child_view.view);
-      child_view.rendered = true;
-    }, this);
-
+    if (this.collection.length) {
+      this.hide_empty_text();
+      _.each(this.child_views, function(child_view, index) {
+        this.append(child_view.view);
+        child_view.rendered = true;
+      }, this);
+    }
+    else {
+      this.show_empty_text();
+    }
     this.rendered = true;
     return this;
   },
 
   reverse_render: function(reverser) {
     $(this.el).html(JST[this.template](this.collection));
-    _.each(this.child_views, function(child_view, index) {
-      this.prepend(child_view.view);
-    }, this);
+    if (this.collection.length) {
+      this.hide_empty_text();
+      _.each(this.child_views, function(child_view, index) {
+        this.prepend(child_view.view);
+      }, this);
+    }
+    else {
+      this.show_empty_text();
+    }
     this.rendered = true;
     return this;
   },
@@ -81,6 +91,7 @@ CollectionView = BaseView.extend({
     var child_view = this.new_child_view(model);
     this.child_views.push(child_view);
     if (this.rendered) {
+      this.hide_empty_text();
       this.append(child_view.view);
     }
   },
@@ -90,6 +101,9 @@ CollectionView = BaseView.extend({
     this.child_views = _.without(this.child_views, viewToRemove);
     if (this.rendered && viewToRemove) {
       viewToRemove.view.remove();
+    }
+    if (!this.collection.length) {
+      this.show_empty_text();
     }
   },
 
@@ -110,6 +124,18 @@ CollectionView = BaseView.extend({
 
   assign: function() {
     BaseView.prototype.assign.apply(this, arguments);
+  },
+
+  show_empty_text: function() {
+    if (this.empty_text) {
+      this.$(this.list_selector).prepend('<li class="empty-text">' + this.empty_text + '</li>');
+    }
+  },
+
+  hide_empty_text: function() {
+    if (this.empty_text) {
+      this.$(this.list_selector).find('.empty-text').remove();
+    }
   }
 
 });
